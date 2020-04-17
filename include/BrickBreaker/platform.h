@@ -7,15 +7,19 @@
 
 #include <cinder/app/App.h>
 
+const int kDefaultPlatformWidth = 100;
+
 namespace BrickBreaker {
   class platform {
   public:
+    const double height_ = 20;
+    double width_;
     double speed_;
-    double size_;
     cinder::vec2 loc_;
-    platform(cinder::vec2 location);
+    explicit platform(cinder::vec2 location);
     void update();
     void draw();
+    ci::Rectf GetPlatformBounds(); // Only return the top of the platform
   };
 }
 

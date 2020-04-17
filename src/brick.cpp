@@ -7,13 +7,10 @@
 
 namespace BrickBreaker {
 
-  const int kMaxHealth = 100;
-  const int kBrickWidth = 5;
-  const int kBrickHeight = 2;
-
   brick::brick(cinder::vec2 location) {
     loc_ = location;
     health_ = kMaxHealth;
+    draw();
   }
 
   void brick::update() {
@@ -22,8 +19,9 @@ namespace BrickBreaker {
 
   // Below is incorrect
   void brick::draw() {
-    cinder::Rectf rect = cinder::Rectf();
-    cinder::gl::drawSolidRect(rect, loc_);
+    ci::gl::color(0, 0, 1);
+    cinder::Rectf rect = cinder::Rectf(loc_.x, loc_.y, loc_.x + kBrickWidth, loc_.y + kBrickHeight);
+    cinder::gl::drawSolidRect(rect);
   }
 
 }

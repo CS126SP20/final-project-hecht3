@@ -7,7 +7,13 @@
 
 #include <cinder/app/App.h>
 
+const int kBrickWidth = 50;
+const int kBrickHeight = 20;
+
 namespace BrickBreaker {
+
+  const int kMaxHealth = 100;
+
   class brick {
   public:
     const double speed_ = 0.0;

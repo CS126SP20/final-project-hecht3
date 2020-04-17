@@ -6,8 +6,12 @@
 #include <cinder/gl/gl.h>
 
 namespace BrickBreaker {
-  ball::ball(cinder::vec2 location) {
+
+  ball::ball(cinder::vec2 location, double speed) {
     loc_ = location;
+    radius_ = kDefaultBallRadius;
+    speed_ = speed;
+    draw();
   }
 
   void ball::update() {

@@ -20,7 +20,7 @@ class MyApp : public cinder::app::App {
   void update() override;
   void draw() override;
   void mouseMove(cinder::app::MouseEvent event) override;
-  void mouseDrag(cinder::app::MouseEvent event);
+  void mouseDrag(cinder::app::MouseEvent event) override;
   void RemoveBrick(int brick_id);
   void RemoveBall(int ball_id);
   void RemovePlatform(int platform_id);

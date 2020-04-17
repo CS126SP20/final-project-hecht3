@@ -7,14 +7,17 @@
 
 #include <cinder/app/App.h>
 
+const int kDefaultBallRadius = 10;
+const int kDefaultBallSpeed = 5;
+
 namespace BrickBreaker {
   class ball {
   public:
-    const double radius_ = 2;
+    double radius_;
     double speed_;
     double dir_;
     cinder::vec2 loc_;
-    ball(cinder::vec2 location);
+    explicit ball(cinder::vec2 location, double speed);
     void update();
     void draw();
   };
