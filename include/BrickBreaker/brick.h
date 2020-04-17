@@ -16,7 +16,6 @@ namespace BrickBreaker {
 
   class brick {
   public:
-    const double speed_ = 0.0;
     cinder::vec2 loc_;
     int health_;
 

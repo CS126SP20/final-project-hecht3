@@ -3,6 +3,7 @@
 #include "my_app.h"
 
 #include <cinder/app/App.h>
+#include <cinder/gl/wrapper.h>
 
 
 namespace myapp {
@@ -25,19 +26,36 @@ namespace myapp {
     ci::vec2 platform_init_loc = ci::vec2(getWindowCenter().x, getWindowBounds().y2 - kWallOffset);
     BrickBreaker::platform platform = BrickBreaker::platform(platform_init_loc);
     platforms_.push_back(platform);
-    BrickBreaker::ball ball = BrickBreaker::ball(ci::vec2(platform.loc_.x, platform.loc_.y - platform.height_), kDefaultBallSpeed);
+    BrickBreaker::ball ball = BrickBreaker::ball(ci::vec2(platform.loc_.x, platform.loc_.y - platform.height_), kDefaultBallSpeed, 0);
     balls_.push_back(ball);
   }
 
   void MyApp::update() {
-    for (BrickBreaker::brick brick : bricks_) {
-      brick.update();
+    ci::gl::clear();
+    for (auto brick_iterator = bricks_.begin(); brick_iterator != bricks_.end();) {
+      brick_iterator->update();
+      if (brick_iterator->health_ <= 0) {
+        brick_iterator = bricks_.erase(brick_iterator);
+      } else {
+        ++brick_iterator;
+      }
     }
-    for (BrickBreaker::ball ball : balls_) {
-      ball.update();
+    for (auto ball_iterator = balls_.begin(); ball_iterator != balls_.end();) {
+      ball_iterator->update();
+      if (ball_iterator->loc_.y > getWindowBounds().y2) {
+        ball_iterator = balls_.erase(ball_iterator);
+      } else {
+        ++ball_iterator;
+      }
     }
-    for (BrickBreaker::platform platform : platforms_) {
-      platform.update();
+    for (auto platform_iterator = platforms_.begin(); platform_iterator != platforms_.end();) {
+      platform_iterator->loc_ = ci::vec2(mouse_loc_.x, platform_iterator->loc_.y);
+      platform_iterator->update();
+      if (false) {
+        // Add condition here for power-up extension
+      } else {
+        ++platform_iterator;
+      }
     }
   }
 
@@ -45,8 +63,7 @@ namespace myapp {
 
   // https://libcinder.org/docs/guides/tour/hello_cinder_chapter3.html
   void MyApp::mouseMove(ci::app::MouseEvent event) {
-    mouse_move_ = event.getPos();
-
+    mouse_loc_ = event.getPos();
   }
 
   void MyApp::mouseDrag(ci::app::MouseEvent event) {

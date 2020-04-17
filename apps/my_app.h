@@ -13,7 +13,7 @@ namespace myapp {
 
 class MyApp : public cinder::app::App {
 
-  cinder::ivec2 mouse_move_;
+  cinder::ivec2 mouse_loc_;
  public:
   MyApp();
   void setup() override;

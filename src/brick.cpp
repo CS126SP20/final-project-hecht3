@@ -14,7 +14,9 @@ namespace BrickBreaker {
   }
 
   void brick::update() {
-    draw();
+    if (health_ > 0) {
+      draw();
+    }
   }
 
   // Below is incorrect

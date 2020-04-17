@@ -17,7 +17,7 @@ namespace BrickBreaker {
     double speed_;
     double dir_;
     cinder::vec2 loc_;
-    explicit ball(cinder::vec2 location, double speed);
+    explicit ball(cinder::vec2 location, double speed, double dir);
     void update();
     void draw();
   };
