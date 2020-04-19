@@ -13,7 +13,9 @@ namespace myapp {
 
 class MyApp : public cinder::app::App {
 
-  cinder::ivec2 mouse_loc_;
+  cinder::ivec2 current_mouse_loc_;
+  cinder::ivec2 last_mouse_loc_;
+  double mouse_vel_;
  public:
   MyApp();
   void setup() override;
@@ -24,10 +26,17 @@ class MyApp : public cinder::app::App {
   void RemoveBrick(int brick_id);
   void RemoveBall(int ball_id);
   void RemovePlatform(int platform_id);
+  void UpdateBricks();
+  void UpdateBalls();
+  void UpdatePlatforms();
 
   std::vector<BrickBreaker::ball> balls_;
   std::vector<BrickBreaker::brick> bricks_;
   std::vector<BrickBreaker::platform> platforms_;
+
+  uint64_t time_;
+
+  bool is_start_;
 
 };
 
