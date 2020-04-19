@@ -46,7 +46,11 @@ namespace BrickBreaker {
     dir_.x += kFrictionCoefficient * dir_.x;
   }
 
-  void ball::BrickTopCollision() {
+  void ball::BrickTopBottomCollision() {
     dir_.y = -dir_.y;
+  }
+
+  void ball::BrickSideCollision() {
+    dir_.x = -dir_.x;
   }
 }

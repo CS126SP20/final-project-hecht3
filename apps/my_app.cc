@@ -74,15 +74,49 @@ namespace myapp {
     for (auto brick_iterator = bricks_.begin();
          brick_iterator != bricks_.end();) {
       brick_iterator->update();
-      for (auto ball_iterator = balls_.begin(); ball_iterator != balls_.end(); ++ball_iterator) {
+      for (auto ball_iterator = balls_.begin();
+           ball_iterator != balls_.end(); ++ball_iterator) {
         // Check collision with top of brick
-        if (ball_iterator->loc_.x > brick_iterator->loc_.x &&
-          ball_iterator->loc_.x < brick_iterator->loc_.x + kBrickWidth && (ball_iterator->loc_.y + 2 >=
-                                                 brick_iterator->loc_.y -
-                                                 kDefaultBallRadius) && (ball_iterator->loc_.y - 2 <=
-                                                 brick_iterator->loc_.y - kDefaultBallRadius) && ball_iterator->dir_.y >= 0) {
+        // THESE ARE DOING THE SAME THING RIGHT NOW
+        if (ball_iterator->loc_.x + kDefaultBallRadius > brick_iterator->loc_.x &&
+            ball_iterator->loc_.x - kDefaultBallRadius < brick_iterator->loc_.x + kBrickWidth &&
+            (ball_iterator->loc_.y + kDefaultBallRadius + 2 >=
+             brick_iterator->loc_.y) && (ball_iterator->loc_.y + kDefaultBallRadius - 2 <=
+                                     brick_iterator->loc_.y) &&
+            ball_iterator->dir_.y >= 0) {
           brick_iterator->health_ -= 100;
-          ball_iterator->BrickTopCollision();
+          ball_iterator->BrickTopBottomCollision();
+        } else if (ball_iterator->loc_.x + kDefaultBallRadius > brick_iterator->loc_.x &&
+                   ball_iterator->loc_.x - kDefaultBallRadius <
+                   brick_iterator->loc_.x + kBrickWidth &&
+                   (ball_iterator->loc_.y - kDefaultBallRadius - 2 <=
+                    brick_iterator->loc_.y + kBrickHeight) && (ball_iterator->loc_.y - kDefaultBallRadius + 2 >=
+                                            brick_iterator->loc_.y + kBrickHeight) &&
+                   ball_iterator->dir_.y <= 0) {
+          brick_iterator->health_ -= 100;
+          ball_iterator->BrickTopBottomCollision();
+        } else if (ball_iterator->loc_.y + kDefaultBallRadius > brick_iterator->loc_.y &&
+                   ball_iterator->loc_.y - kDefaultBallRadius <
+                   brick_iterator->loc_.y + kBrickHeight &&
+                   (ball_iterator->loc_.x +
+                    kDefaultBallRadius - 2 <=
+                    brick_iterator->loc_.x) && (ball_iterator->loc_.x +
+                                            kDefaultBallRadius + 2 >=
+                                            brick_iterator->loc_.x) &&
+                      ball_iterator->dir_.x >= 0) {
+          brick_iterator->health_ -= 100;
+          ball_iterator->BrickSideCollision();
+        } else if (ball_iterator->loc_.y + kDefaultBallRadius > brick_iterator->loc_.y &&
+                  ball_iterator->loc_.y - kDefaultBallRadius <
+                  brick_iterator->loc_.y + kBrickHeight &&
+                  (ball_iterator->loc_.x  -
+                   kDefaultBallRadius + 2 >=
+                   brick_iterator->loc_.x + kBrickWidth) && (ball_iterator->loc_.x -
+                                               kDefaultBallRadius - 2 <=
+                                           brick_iterator->loc_.x + kBrickWidth) &&
+                         ball_iterator->dir_.x <= 0) {
+          brick_iterator->health_ -= 100;
+          ball_iterator->BrickSideCollision();
         }
       }
       if (brick_iterator->health_ <= 0) {
@@ -128,11 +162,12 @@ namespace myapp {
           if (platforms_.size() == 1 && ball_iterator->loc_.x >
                                         platform.GetPlatformBounds().getX1() &&
               ball_iterator->loc_.x <
-              platform.GetPlatformBounds().getX2() && ball_iterator->loc_.y + 1 >=
-                                                      platform.GetPlatformBounds().getY1() -
-                                                      kDefaultBallRadius && ball_iterator->loc_.y - 1 <=
-                                                                            platform.GetPlatformBounds().getY1() -
-                                                                            kDefaultBallRadius && !is_start_) {
+              platform.GetPlatformBounds().getX2() &&
+              ball_iterator->loc_.y + 1 >=
+              platform.GetPlatformBounds().getY1() -
+              kDefaultBallRadius && ball_iterator->loc_.y - 1 <=
+                                    platform.GetPlatformBounds().getY1() -
+                                    kDefaultBallRadius && !is_start_) {
             ball_iterator->PlatformCollision(mouse_vel_);
           }
         }

@@ -8,11 +8,12 @@
 #include <cinder/app/App.h>
 
 const int kDefaultPlatformWidth = 100;
+const int kPlatformHeight = 10;
 
 namespace BrickBreaker {
   class platform {
   public:
-    const double height_ = 20;
+    const double height_ = kPlatformHeight;
     double width_;
     double speed_;
     cinder::vec2 loc_;

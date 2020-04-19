@@ -23,7 +23,8 @@ namespace BrickBreaker {
     void WallCollision();
     void CeilingCollision();
     void PlatformCollision(double mouse_vel);
-    void BrickTopCollision();
+    void BrickTopBottomCollision();
+    void BrickSideCollision();
   };
 }
 
