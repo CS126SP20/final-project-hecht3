@@ -77,4 +77,8 @@ namespace BrickBreaker {
   ci::vec2 ball::GetDirection() {
     return dir_;
   }
+
+  double ball::GetRadius() {
+    return radius_;
+  }
 }
