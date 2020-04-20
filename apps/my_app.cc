@@ -77,44 +77,11 @@ namespace myapp {
       for (auto ball_iterator = balls_.begin();
            ball_iterator != balls_.end(); ++ball_iterator) {
         // Check collision with top of brick
-        // THESE ARE DOING THE SAME THING RIGHT NOW
-        if (ball_iterator->loc_.x + kDefaultBallRadius > brick_iterator->loc_.x &&
-            ball_iterator->loc_.x - kDefaultBallRadius < brick_iterator->loc_.x + kBrickWidth &&
-            (ball_iterator->loc_.y + kDefaultBallRadius + 2 >=
-             brick_iterator->loc_.y) && (ball_iterator->loc_.y + kDefaultBallRadius - 2 <=
-                                     brick_iterator->loc_.y) &&
-            ball_iterator->dir_.y >= 0) {
+        if (CheckBallWithinBrickHorizBounds(*ball_iterator, *brick_iterator)) {
           brick_iterator->health_ -= 100;
           ball_iterator->BrickTopBottomCollision();
-        } else if (ball_iterator->loc_.x + kDefaultBallRadius > brick_iterator->loc_.x &&
-                   ball_iterator->loc_.x - kDefaultBallRadius <
-                   brick_iterator->loc_.x + kBrickWidth &&
-                   (ball_iterator->loc_.y - kDefaultBallRadius - 2 <=
-                    brick_iterator->loc_.y + kBrickHeight) && (ball_iterator->loc_.y - kDefaultBallRadius + 2 >=
-                                            brick_iterator->loc_.y + kBrickHeight) &&
-                   ball_iterator->dir_.y <= 0) {
-          brick_iterator->health_ -= 100;
-          ball_iterator->BrickTopBottomCollision();
-        } else if (ball_iterator->loc_.y + kDefaultBallRadius > brick_iterator->loc_.y &&
-                   ball_iterator->loc_.y - kDefaultBallRadius <
-                   brick_iterator->loc_.y + kBrickHeight &&
-                   (ball_iterator->loc_.x +
-                    kDefaultBallRadius - 2 <=
-                    brick_iterator->loc_.x) && (ball_iterator->loc_.x +
-                                            kDefaultBallRadius + 2 >=
-                                            brick_iterator->loc_.x) &&
-                      ball_iterator->dir_.x >= 0) {
-          brick_iterator->health_ -= 100;
-          ball_iterator->BrickSideCollision();
-        } else if (ball_iterator->loc_.y + kDefaultBallRadius > brick_iterator->loc_.y &&
-                  ball_iterator->loc_.y - kDefaultBallRadius <
-                  brick_iterator->loc_.y + kBrickHeight &&
-                  (ball_iterator->loc_.x  -
-                   kDefaultBallRadius + 2 >=
-                   brick_iterator->loc_.x + kBrickWidth) && (ball_iterator->loc_.x -
-                                               kDefaultBallRadius - 2 <=
-                                           brick_iterator->loc_.x + kBrickWidth) &&
-                         ball_iterator->dir_.x <= 0) {
+        } else if (CheckBallWithinBrickVertBounds(*ball_iterator,
+                                                  *brick_iterator)) {
           brick_iterator->health_ -= 100;
           ball_iterator->BrickSideCollision();
         }
@@ -135,6 +102,13 @@ namespace myapp {
     mouse_vel_ = change_in_mouse_loc_x / time_elapsed;
     for (auto platform_iterator = platforms_.begin();
          platform_iterator != platforms_.end();) {
+      if (last_mouse_loc_.x >
+          getWindowBounds().x2 - kDefaultPlatformWidth / 2) {
+        last_mouse_loc_.x = getWindowBounds().x2 - kDefaultPlatformWidth / 2;
+      } else if (last_mouse_loc_.x <
+                 getWindowBounds().x1 + kDefaultPlatformWidth / 2) {
+        last_mouse_loc_.x = getWindowBounds().x1 + kDefaultPlatformWidth / 2;
+      }
       platform_iterator->loc_ = ci::vec2(last_mouse_loc_.x,
                                          platform_iterator->loc_.y);
       platform_iterator->update();
@@ -159,13 +133,13 @@ namespace myapp {
         ball_iterator->CeilingCollision();
       } else {
         for (BrickBreaker::platform platform : platforms_) {
-          if (platforms_.size() == 1 && ball_iterator->loc_.x >
-                                        platform.GetPlatformBounds().getX1() &&
-              ball_iterator->loc_.x <
+          if (ball_iterator->loc_.x + kDefaultBallRadius >
+              platform.GetPlatformBounds().getX1() &&
+              ball_iterator->loc_.x - kDefaultBallRadius <
               platform.GetPlatformBounds().getX2() &&
-              ball_iterator->loc_.y + 1 >=
+              ball_iterator->loc_.y + 3 >=
               platform.GetPlatformBounds().getY1() -
-              kDefaultBallRadius && ball_iterator->loc_.y - 1 <=
+              kDefaultBallRadius && ball_iterator->loc_.y - 3 <=
                                     platform.GetPlatformBounds().getY1() -
                                     kDefaultBallRadius && !is_start_) {
             ball_iterator->PlatformCollision(mouse_vel_);
@@ -180,6 +154,44 @@ namespace myapp {
       }
     }
     is_start_ = false;
+  }
+
+  bool MyApp::CheckBallWithinBrickVertBounds(BrickBreaker::ball ball,
+                                             BrickBreaker::brick brick) {
+    bool within_vert_bound = ball.GetLocation().y + kDefaultBallRadius >
+                             brick.GetUpperLeftCorner().y &&
+                             ball.GetLocation().y - kDefaultBallRadius <
+                             brick.GetLowerLeftCorner().y;
+    bool brick_hit_left = ball.GetLocation().x + kDefaultBallRadius - 3 <=
+                          brick.GetUpperLeftCorner().x &&
+                          ball.GetLocation().x + kDefaultBallRadius + 3 >=
+                          brick.GetUpperLeftCorner().x &&
+                          ball.GetDirection().x >= 0;
+    bool brick_hit_right = ball.GetLocation().x - kDefaultBallRadius + 3 >=
+                           brick.GetUpperRightCorner().x &&
+                           ball.GetLocation().x - kDefaultBallRadius - 3 <=
+                           brick.GetUpperRightCorner().x &&
+                           ball.GetDirection().x <= 0;
+    return within_vert_bound && (brick_hit_left || brick_hit_right);
+  }
+
+  bool MyApp::CheckBallWithinBrickHorizBounds(BrickBreaker::ball ball,
+                                              BrickBreaker::brick brick) {
+    bool within_horiz_bound = ball.GetLocation().x + kDefaultBallRadius >
+                              brick.GetUpperLeftCorner().x &&
+                              ball.GetLocation().x - kDefaultBallRadius <
+                              brick.GetUpperRightCorner().x;
+    bool brick_hit_top = ball.GetLocation().y + kDefaultBallRadius + 3 >=
+                            brick.GetUpperLeftCorner().y &&
+                            ball.GetLocation().y + kDefaultBallRadius - 3 <=
+                            brick.GetUpperLeftCorner().y &&
+                            ball.GetDirection().y >= 0;
+    bool brick_hit_bottom = ball.GetLocation().y - kDefaultBallRadius - 3 <=
+                         brick.GetLowerLeftCorner().y &&
+                         ball.GetLocation().y - kDefaultBallRadius + 3 >=
+                         brick.GetLowerLeftCorner().y &&
+                         ball.GetDirection().y <= 0;
+    return within_horiz_bound && (brick_hit_top || brick_hit_bottom);
   }
 
 }  // namespace myapp

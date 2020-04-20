@@ -29,6 +29,8 @@ class MyApp : public cinder::app::App {
   void UpdateBricks();
   void UpdateBalls();
   void UpdatePlatforms();
+  bool CheckBallWithinBrickVertBounds(BrickBreaker::ball ball, BrickBreaker::brick brick);
+  bool CheckBallWithinBrickHorizBounds(BrickBreaker::ball ball, BrickBreaker::brick brick);
 
   std::vector<BrickBreaker::ball> balls_;
   std::vector<BrickBreaker::brick> bricks_;

@@ -22,6 +22,10 @@ namespace BrickBreaker {
     brick(cinder::vec2 location);
     void update();
     void draw();
+    ci::vec2 GetUpperLeftCorner();
+    ci::vec2 GetUpperRightCorner();
+    ci::vec2 GetLowerLeftCorner();
+    ci::vec2 GetLowerRightCorner();
   };
 }
 

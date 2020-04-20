@@ -7,7 +7,8 @@
 
 namespace BrickBreaker {
 
-  const double kFrictionCoefficient = .2;
+  const double kFrictionCoefficient = 500;
+  const double kMaxSpeedThreshold = 7.0;
 
   ball::ball(cinder::vec2 location, double speed, ci::vec2 dir) {
     loc_ = location;
@@ -35,22 +36,45 @@ namespace BrickBreaker {
 
   void ball::WallCollision() {
     dir_.x = -dir_.x;
+    if (speed_ < kMaxSpeedThreshold) {
+      speed_ += .01;
+    }
   }
 
   void ball::CeilingCollision() {
     dir_.y = -dir_.y;
+    if (speed_ < kMaxSpeedThreshold) {
+      speed_ += .01;
+    }
   }
 
   void ball::PlatformCollision(double mouse_vel) {
     dir_.y = -dir_.y;
-    dir_.x += kFrictionCoefficient * dir_.x;
+    dir_.x -= kFrictionCoefficient * mouse_vel;
+    if (speed_ < kMaxSpeedThreshold) {
+      speed_ += .01;
+    }
   }
 
   void ball::BrickTopBottomCollision() {
     dir_.y = -dir_.y;
+    if (speed_ < kMaxSpeedThreshold) {
+      speed_ += .01;
+    }
   }
 
   void ball::BrickSideCollision() {
     dir_.x = -dir_.x;
+    if (speed_ < kMaxSpeedThreshold) {
+      speed_ += .01;
+    }
+  }
+
+  ci::vec2 ball::GetLocation() {
+    return loc_;
+  }
+
+  ci::vec2 ball::GetDirection() {
+    return dir_;
   }
 }

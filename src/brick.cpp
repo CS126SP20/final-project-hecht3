@@ -26,5 +26,20 @@ namespace BrickBreaker {
     cinder::gl::drawSolidRect(rect);
   }
 
+  ci::vec2 brick::GetUpperLeftCorner() {
+    return loc_;
+  }
+
+  ci::vec2 brick::GetUpperRightCorner() {
+    return ci::vec2(loc_.x + kBrickWidth, loc_.y);
+  }
+
+  ci::vec2 brick::GetLowerLeftCorner() {
+    return ci::vec2(loc_.x, loc_.y + kBrickHeight);
+  }
+
+  ci::vec2 brick::GetLowerRightCorner() {
+    return ci::vec2(loc_.x + kBrickWidth, loc_.y + kBrickHeight);
+  }
 }
 

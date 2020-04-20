@@ -8,7 +8,7 @@
 #include <cinder/app/App.h>
 
 const int kDefaultBallRadius = 10;
-const double kDefaultBallSpeed = 5;
+const double kDefaultBallSpeed = 5.0;
 
 namespace BrickBreaker {
   class ball {
@@ -25,6 +25,8 @@ namespace BrickBreaker {
     void PlatformCollision(double mouse_vel);
     void BrickTopBottomCollision();
     void BrickSideCollision();
+    ci::vec2 GetLocation();
+    ci::vec2 GetDirection();
   };
 }
 
