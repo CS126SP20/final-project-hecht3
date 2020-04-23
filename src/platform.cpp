@@ -28,5 +28,9 @@ namespace BrickBreaker {
     return cinder::Rectf(loc_.x - (width_ / 2), loc_.y - (height_ / 2) + 1, loc_.x + (width_ / 2), loc_.y - (height_ / 2) - 1);
   }
 
+  cinder::vec2 platform::GetPlatformTopMiddle() {
+    return ci::vec2(loc_.x, loc_.y - kPlatformHeight / 2);
+  }
+
 
 }

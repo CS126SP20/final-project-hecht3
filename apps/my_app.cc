@@ -133,7 +133,14 @@ namespace myapp {
 
   void MyApp::UpdateBalls() {
     for (auto ball_iterator = balls_.begin(); ball_iterator != balls_.end();) {
-      if (ball_iterator->loc_.x <= getWindowBounds().x1 + ball_iterator->GetRadius() ||
+      if (last_click_count_ < clicks_) {
+        is_start_ = false;
+        ball_iterator->dir_ = ci::vec2(ball_iterator->loc_.x - last_mouse_loc_.x, ball_iterator->loc_.y - last_mouse_loc_.y);
+        last_click_count_ = clicks_;
+      }
+      if (is_start_) {
+        ball_iterator->loc_ = ci::vec2(platforms_[0].GetPlatformTopMiddle().x, platforms_[0].GetPlatformTopMiddle().y - ball_iterator->GetRadius());
+      } else if (ball_iterator->loc_.x <= getWindowBounds().x1 + ball_iterator->GetRadius() ||
           ball_iterator->loc_.x >= getWindowBounds().x2 - ball_iterator->GetRadius()) {
         ball_iterator->WallCollision();
       } else if (ball_iterator->loc_.y <=
@@ -149,7 +156,7 @@ namespace myapp {
               platform.GetPlatformBounds().getY1() -
               ball_iterator->GetRadius() && ball_iterator->loc_.y - kCollisionPixelThreshold <=
                                     platform.GetPlatformBounds().getY1() -
-                                    ball_iterator->GetRadius() && !is_start_) {
+                                    ball_iterator->GetRadius()) {
             // Prevent ball getting stuck in constant platform collisions
             if (time_ - last_collision_time_ > 100000) {
               ball_iterator->PlatformCollision(mouse_vel_);
@@ -165,7 +172,6 @@ namespace myapp {
         ++ball_iterator;
       }
     }
-    is_start_ = false;
   }
 
   bool MyApp::CheckSideCollision(BrickBreaker::ball ball,
@@ -284,7 +290,7 @@ namespace myapp {
       for (int j = 0; j <= kMenuGridDim; j++) {
         const cinder::vec2 center = ci::vec2(i * menu_grid_width_ + (menu_grid_width_ / 2), j * menu_grid_height_ + menu_grid_height_ * .9);
         const cinder::ivec2 size = {menu_grid_width_, menu_grid_height_};
-        const cinder::Color color = cinder::Color(1, 0, 0);
+        const cinder::Color color = cinder::Color(0, 0, 1);
         PrintText(std::to_string(i + j*kMenuGridDim), color, size, center);
       }
       cinder::gl::drawLine(ci::vec2(i * menu_grid_width_, getWindowBounds().y1), ci::vec2(i * menu_grid_width_, getWindowBounds().y2));

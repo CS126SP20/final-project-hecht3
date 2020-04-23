@@ -20,6 +20,7 @@ namespace BrickBreaker {
     explicit platform(cinder::vec2 location);
     void update();
     void draw();
+    cinder::vec2 GetPlatformTopMiddle();
     ci::Rectf GetPlatformBounds(); // Only return the top of the platform
   };
 }
