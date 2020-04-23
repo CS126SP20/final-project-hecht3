@@ -33,6 +33,8 @@ class MyApp : public cinder::app::App {
   void SelectLevel(int level_number);
   void GenerateLevels();
   int GetLevelClicked(ci::vec2 loc_clicked);
+  template<typename C> void PrintText(const std::string &text, const C &color, const cinder::ivec2 &size,
+                 const cinder::vec2 &loc);
 
   std::vector<BrickBreaker::ball> balls_;
   std::vector<BrickBreaker::brick> bricks_;
@@ -43,6 +45,7 @@ class MyApp : public cinder::app::App {
   int last_click_count_;
   int menu_grid_width_;
   int menu_grid_height_;
+  int current_level_;
 
   uint64_t time_;
   uint64_t last_collision_time_;

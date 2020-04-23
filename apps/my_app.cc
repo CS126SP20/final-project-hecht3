@@ -9,17 +9,31 @@
 
 namespace myapp {
 
+// Following definitions are from Snake assignment
+#if defined(CINDER_COCOA_TOUCH)
+  const char kNormalFont[] = "Arial";
+  const char kBoldFont[] = "Arial-BoldMT";
+  const char kDifferentFont[] = "AmericanTypewriter";
+#elif defined(CINDER_LINUX)
+  const char kNormalFont[] = "Arial Unicode MS";
+  const char kBoldFont[] = "Arial Unicode MS";
+  const char kDifferentFont[] = "Purisa";
+#else
+  const char kNormalFont[] = "Arial";
+  const char kBoldFont[] = "Arial Bold";
+  const char kDifferentFont[] = "Papyrus";
+#endif
+
   using cinder::app::KeyEvent;
 
   const int kBrickOffset = 30;
   const int kWallOffset = 15;
   const int kCollisionPixelThreshold = 3;
-  const int kMenuGridX = 5;
-  const int kMenuGridY = 5;
+  const int kMenuGridDim = 5;
 
   void MyApp::setup() {
-    menu_grid_width_ = cinder::app::getWindowBounds().x2 / kMenuGridX;
-    menu_grid_height_ = cinder::app::getWindowBounds().y2 / kMenuGridY;
+    menu_grid_width_ = cinder::app::getWindowBounds().x2 / kMenuGridDim;
+    menu_grid_height_ = cinder::app::getWindowBounds().y2 / kMenuGridDim;
     is_start_ = true;
     level_clicked_ = false;
     time_ = 0;
@@ -31,6 +45,9 @@ namespace myapp {
   void MyApp::update() {
     if (!level_clicked_) {
       DrawMenuScreen();
+    } else if (bricks_.size() == 0) {
+      is_start_ = true;
+      SelectLevel(++current_level_);
     } else {
       ci::gl::clear();
       UpdateBricks();
@@ -208,21 +225,8 @@ namespace myapp {
 
   void MyApp::GenerateLevels() {
     std::vector<BrickBreaker::brick> bricks;
-    // Level 0
-    for (int i = 0; i < 10; i++) {
-      for (int j = 1; j < 10; j++) {
-        ci::vec2 location = cinder::vec2(
-          i * (kBrickOffset + kBrickWidth) + kWallOffset,
-          j * (kBrickOffset + kBrickHeight) + kWallOffset);
-        BrickBreaker::brick brick = BrickBreaker::brick(location, kDefaultBrickHealth);
-        bricks.push_back(brick);
-      }
-    }
-    levels_.push_back(bricks);
-
     // Level 1
-    bricks.clear();
-    for (int i = 5; i < 10; i++) {
+    for (int i = 0; i < 10; i++) {
       for (int j = 1; j < 10; j++) {
         ci::vec2 location = cinder::vec2(
           i * (kBrickOffset + kBrickWidth) + kWallOffset,
@@ -235,8 +239,8 @@ namespace myapp {
 
     // Level 2
     bricks.clear();
-    for (int i = 5; i < 10; i++) {
-      for (int j = 1; j < 10; j++) {
+    for (int i = 8; i < 10; i++) {
+      for (int j = 8; j < 10; j++) {
         ci::vec2 location = cinder::vec2(
           i * (kBrickOffset + kBrickWidth) + kWallOffset,
           j * (kBrickOffset + kBrickHeight) + kWallOffset);
@@ -258,16 +262,33 @@ namespace myapp {
       }
     }
     levels_.push_back(bricks);
+
+    // Level 4
+    bricks.clear();
+    for (int i = 5; i < 10; i++) {
+      for (int j = 1; j < 10; j++) {
+        ci::vec2 location = cinder::vec2(
+          i * (kBrickOffset + kBrickWidth) + kWallOffset,
+          j * (kBrickOffset + kBrickHeight) + kWallOffset);
+        BrickBreaker::brick brick = BrickBreaker::brick(location, kDefaultBrickHealth);
+        bricks.push_back(brick);
+      }
+    }
+    levels_.push_back(bricks);
   }
 
   void MyApp::DrawMenuScreen() {
     cinder::gl::color(0, 0, 1);
     cinder::gl::lineWidth(10);
-    for (int i = 1; i < kMenuGridX; i++) {
+    for (int i = 0; i <= kMenuGridDim; i++) {
+      for (int j = 0; j <= kMenuGridDim; j++) {
+        const cinder::vec2 center = ci::vec2(i * menu_grid_width_ + (menu_grid_width_ / 2), j * menu_grid_height_ + menu_grid_height_ * .9);
+        const cinder::ivec2 size = {menu_grid_width_, menu_grid_height_};
+        const cinder::Color color = cinder::Color(1, 0, 0);
+        PrintText(std::to_string(i + j*kMenuGridDim), color, size, center);
+      }
       cinder::gl::drawLine(ci::vec2(i * menu_grid_width_, getWindowBounds().y1), ci::vec2(i * menu_grid_width_, getWindowBounds().y2));
-    }
-    for (int j = 1; j < kMenuGridX; j++) {
-      cinder::gl::drawLine(ci::vec2(getWindowBounds().x1, j * menu_grid_height_), ci::vec2(getWindowBounds().x2, j * menu_grid_height_));
+      cinder::gl::drawLine(ci::vec2(getWindowBounds().x1, i * menu_grid_height_), ci::vec2(getWindowBounds().x2, i * menu_grid_height_));
     }
     if (clicks_ > last_click_count_) {
       int level = GetLevelClicked(last_mouse_loc_);
@@ -280,17 +301,40 @@ namespace myapp {
   }
 
   int MyApp::GetLevelClicked(ci::vec2 loc_clicked) {
-    for (int i = 0; i < kMenuGridX; i++) {
-      for (int j = 0; j < kMenuGridY; j++) {
+    for (int i = 0; i < kMenuGridDim; i++) {
+      for (int j = 0; j < kMenuGridDim; j++) {
         if (loc_clicked.x > i * menu_grid_width_ &&
             loc_clicked.x < (i + 1) * menu_grid_width_ &&
             loc_clicked.y > j * menu_grid_height_ &&
             loc_clicked.y < (j + 1) * menu_grid_height_) {
-          return i + j*menu_grid_width_;
+          // True level number is the below number + 1 because of 0 indexing
+          current_level_ = i + j*menu_grid_width_;
+          return current_level_;
         }
       }
     }
     return -1;
+  }
+
+  // Following is from Snake project given code
+  template<typename C>
+  void MyApp::PrintText(const std::string &text, const C &color, const cinder::ivec2 &size,
+                 const cinder::vec2 &loc) {
+    cinder::gl::color(color);
+
+    auto box = ci::TextBox()
+      .alignment(ci::TextBox::CENTER)
+      .font(cinder::Font(kNormalFont, 30))
+      .size(size)
+      .color(color)
+      .backgroundColor(ci::ColorA(0, 0, 0, 0))
+      .text(text);
+
+    const auto box_size = box.getSize();
+    const cinder::vec2 locp = {loc.x - box_size.x / 2, loc.y - box_size.y / 2};
+    const auto surface = box.render();
+    const auto texture = cinder::gl::Texture::create(surface);
+    cinder::gl::draw(texture, locp);
   }
 
 }  // namespace myapp
