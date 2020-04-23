@@ -12,27 +12,13 @@ namespace myapp {
 
   int kBrickOffset = 30;
   int kWallOffset = 15;
+  int kCollisionPixelThreshold = 3;
 
   void MyApp::setup() {
     is_start_ = true;
     time_ = 0;
-    for (int i = 0; i < 10; i++) {
-      for (int j = 1; j < 10; j++) {
-        ci::vec2 location = cinder::vec2(
-          i * (kBrickOffset + kBrickWidth) + kWallOffset,
-          j * (kBrickOffset + kBrickHeight) + kWallOffset);
-        BrickBreaker::brick brick = BrickBreaker::brick(location);
-        bricks_.push_back(brick);
-      }
-    }
-    ci::vec2 platform_init_loc = ci::vec2(getWindowCenter().x,
-                                          getWindowBounds().y2 - kWallOffset);
-    BrickBreaker::platform platform = BrickBreaker::platform(platform_init_loc);
-    platforms_.push_back(platform);
-    BrickBreaker::ball ball = BrickBreaker::ball(
-      ci::vec2(platform.loc_.x, platform.loc_.y - platform.height_),
-      kDefaultBallSpeed, ci::vec2(10, -10));
-    balls_.push_back(ball);
+    GenerateLevels();
+    SelectLevel(1);
   }
 
   void MyApp::update() {
@@ -137,9 +123,9 @@ namespace myapp {
               platform.GetPlatformBounds().getX1() &&
               ball_iterator->loc_.x - ball_iterator->GetRadius() <
               platform.GetPlatformBounds().getX2() &&
-              ball_iterator->loc_.y + 3 >=
+              ball_iterator->loc_.y + kCollisionPixelThreshold >=
               platform.GetPlatformBounds().getY1() -
-              ball_iterator->GetRadius() && ball_iterator->loc_.y - 3 <=
+              ball_iterator->GetRadius() && ball_iterator->loc_.y - kCollisionPixelThreshold <=
                                     platform.GetPlatformBounds().getY1() -
                                     ball_iterator->GetRadius() && !is_start_) {
             ball_iterator->PlatformCollision(mouse_vel_);
@@ -162,14 +148,14 @@ namespace myapp {
                              brick.GetUpperLeftCorner().y &&
                              ball.GetLocation().y - ball.GetRadius() <
                              brick.GetLowerLeftCorner().y;
-    bool brick_hit_left = ball.GetLocation().x + ball.GetRadius() - 3 <=
+    bool brick_hit_left = ball.GetLocation().x + ball.GetRadius() - kCollisionPixelThreshold <=
                           brick.GetUpperLeftCorner().x &&
-                          ball.GetLocation().x + ball.GetRadius() + 3 >=
+                          ball.GetLocation().x + ball.GetRadius() + kCollisionPixelThreshold >=
                           brick.GetUpperLeftCorner().x &&
                           ball.GetDirection().x >= 0;
-    bool brick_hit_right = ball.GetLocation().x - ball.GetRadius() + 3 >=
+    bool brick_hit_right = ball.GetLocation().x - ball.GetRadius() + kCollisionPixelThreshold >=
                            brick.GetUpperRightCorner().x &&
-                           ball.GetLocation().x - ball.GetRadius() - 3 <=
+                           ball.GetLocation().x - ball.GetRadius() - kCollisionPixelThreshold <=
                            brick.GetUpperRightCorner().x &&
                            ball.GetDirection().x <= 0;
     return within_vert_bound && (brick_hit_left || brick_hit_right);
@@ -181,17 +167,60 @@ namespace myapp {
                               brick.GetUpperLeftCorner().x &&
                               ball.GetLocation().x - ball.GetRadius() <
                               brick.GetUpperRightCorner().x;
-    bool brick_hit_top = ball.GetLocation().y + ball.GetRadius() + 3 >=
+    bool brick_hit_top = ball.GetLocation().y + ball.GetRadius() + kCollisionPixelThreshold >=
                             brick.GetUpperLeftCorner().y &&
-                            ball.GetLocation().y + ball.GetRadius() - 3 <=
+                            ball.GetLocation().y + ball.GetRadius() - kCollisionPixelThreshold <=
                             brick.GetUpperLeftCorner().y &&
                             ball.GetDirection().y >= 0;
-    bool brick_hit_bottom = ball.GetLocation().y - ball.GetRadius() - 3 <=
+    bool brick_hit_bottom = ball.GetLocation().y - ball.GetRadius() - kCollisionPixelThreshold <=
                          brick.GetLowerLeftCorner().y &&
-                         ball.GetLocation().y - ball.GetRadius() + 3 >=
+                         ball.GetLocation().y - ball.GetRadius() + kCollisionPixelThreshold >=
                          brick.GetLowerLeftCorner().y &&
                          ball.GetDirection().y <= 0;
     return within_horiz_bound && (brick_hit_top || brick_hit_bottom);
+  }
+
+  void MyApp::SelectLevel(int level_number) {
+    bricks_.clear();
+    balls_.clear();
+    platforms_.clear();
+    for (int i = 0; i < levels_[level_number].size(); i++) {
+      bricks_.push_back(levels_[level_number][i]);
+    }
+    ci::vec2 platform_init_loc = ci::vec2(getWindowCenter().x,
+                                          getWindowBounds().y2 - kWallOffset);
+    BrickBreaker::platform platform = BrickBreaker::platform(platform_init_loc);
+    platforms_.push_back(platform);
+    BrickBreaker::ball ball = BrickBreaker::ball(
+      ci::vec2(platform.loc_.x, platform.loc_.y - platform.height_),
+      kDefaultBallSpeed, ci::vec2(10, -10));
+    balls_.push_back(ball);
+  }
+
+  void MyApp::GenerateLevels() {
+    std::vector<BrickBreaker::brick> bricks;
+    for (int i = 0; i < 10; i++) {
+      for (int j = 1; j < 10; j++) {
+        ci::vec2 location = cinder::vec2(
+          i * (kBrickOffset + kBrickWidth) + kWallOffset,
+          j * (kBrickOffset + kBrickHeight) + kWallOffset);
+        BrickBreaker::brick brick = BrickBreaker::brick(location);
+        bricks.push_back(brick);
+      }
+    }
+    levels_.push_back(bricks);
+    bricks.clear();
+    for (int i = 5; i < 10; i++) {
+      for (int j = 1; j < 10; j++) {
+        ci::vec2 location = cinder::vec2(
+          i * (kBrickOffset + kBrickWidth) + kWallOffset,
+          j * (kBrickOffset + kBrickHeight) + kWallOffset);
+        BrickBreaker::brick brick = BrickBreaker::brick(location);
+        bricks.push_back(brick);
+      }
+    }
+    levels_.push_back(bricks);
+    bricks.clear();
   }
 
 }  // namespace myapp

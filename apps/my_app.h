@@ -31,10 +31,13 @@ class MyApp : public cinder::app::App {
   void UpdatePlatforms();
   bool CheckTopBottomCollision(BrickBreaker::ball ball, BrickBreaker::brick brick);
   bool CheckSideCollision(BrickBreaker::ball ball, BrickBreaker::brick brick);
+  void SelectLevel(int level_number);
+  void GenerateLevels();
 
   std::vector<BrickBreaker::ball> balls_;
   std::vector<BrickBreaker::brick> bricks_;
   std::vector<BrickBreaker::platform> platforms_;
+  std::vector<std::vector<BrickBreaker::brick>> levels_;
 
   uint64_t time_;
 
