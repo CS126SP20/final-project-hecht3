@@ -7,9 +7,13 @@
 
 namespace BrickBreaker {
 
-  brick::brick(cinder::vec2 location) {
+  brick::brick(cinder::vec2 location, int health) {
     loc_ = location;
-    health_ = kMaxHealth;
+    if (health < kMaxHealth) {
+      health_ = health;
+    } else {
+      health_ = kDefaultBrickHealth;
+    }
     draw();
   }
 

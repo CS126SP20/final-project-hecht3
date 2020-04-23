@@ -4,28 +4,39 @@
 
 #include <cinder/app/App.h>
 #include <cinder/gl/wrapper.h>
+#include <cinder/gl/gl.h>
 
 
 namespace myapp {
 
   using cinder::app::KeyEvent;
 
-  int kBrickOffset = 30;
-  int kWallOffset = 15;
-  int kCollisionPixelThreshold = 3;
+  const int kBrickOffset = 30;
+  const int kWallOffset = 15;
+  const int kCollisionPixelThreshold = 3;
+  const int kMenuGridX = 5;
+  const int kMenuGridY = 5;
 
   void MyApp::setup() {
+    menu_grid_width_ = cinder::app::getWindowBounds().x2 / kMenuGridX;
+    menu_grid_height_ = cinder::app::getWindowBounds().y2 / kMenuGridY;
     is_start_ = true;
+    level_clicked_ = false;
     time_ = 0;
+    last_collision_time_ = time_;
+    clicks_ = 0;
     GenerateLevels();
-    SelectLevel(1);
   }
 
   void MyApp::update() {
-    ci::gl::clear();
-    UpdateBricks();
-    UpdateBalls();
-    UpdatePlatforms();
+    if (!level_clicked_) {
+      DrawMenuScreen();
+    } else {
+      ci::gl::clear();
+      UpdateBricks();
+      UpdateBalls();
+      UpdatePlatforms();
+    }
   }
 
   void MyApp::draw() {}
@@ -40,16 +51,10 @@ namespace myapp {
     mouseMove(event);
   }
 
-  void MyApp::RemoveBrick(int brick_id) {
-
-  }
-
-  void MyApp::RemoveBall(int ball_id) {
-
-  }
-
-  void MyApp::RemovePlatform(int platform_id) {
-
+  void MyApp::mouseDown(ci::app::MouseEvent event) {
+    if (event.isLeft()) {
+      clicks_++;
+    }
   }
 
   MyApp::MyApp() {
@@ -128,7 +133,11 @@ namespace myapp {
               ball_iterator->GetRadius() && ball_iterator->loc_.y - kCollisionPixelThreshold <=
                                     platform.GetPlatformBounds().getY1() -
                                     ball_iterator->GetRadius() && !is_start_) {
-            ball_iterator->PlatformCollision(mouse_vel_);
+            // Prevent ball getting stuck in constant platform collisions
+            if (time_ - last_collision_time_ > 100000) {
+              ball_iterator->PlatformCollision(mouse_vel_);
+              last_collision_time_ = time_;
+            }
           }
         }
       }
@@ -199,28 +208,89 @@ namespace myapp {
 
   void MyApp::GenerateLevels() {
     std::vector<BrickBreaker::brick> bricks;
+    // Level 0
     for (int i = 0; i < 10; i++) {
       for (int j = 1; j < 10; j++) {
         ci::vec2 location = cinder::vec2(
           i * (kBrickOffset + kBrickWidth) + kWallOffset,
           j * (kBrickOffset + kBrickHeight) + kWallOffset);
-        BrickBreaker::brick brick = BrickBreaker::brick(location);
+        BrickBreaker::brick brick = BrickBreaker::brick(location, kDefaultBrickHealth);
         bricks.push_back(brick);
       }
     }
     levels_.push_back(bricks);
+
+    // Level 1
     bricks.clear();
     for (int i = 5; i < 10; i++) {
       for (int j = 1; j < 10; j++) {
         ci::vec2 location = cinder::vec2(
           i * (kBrickOffset + kBrickWidth) + kWallOffset,
           j * (kBrickOffset + kBrickHeight) + kWallOffset);
-        BrickBreaker::brick brick = BrickBreaker::brick(location);
+        BrickBreaker::brick brick = BrickBreaker::brick(location, kDefaultBrickHealth);
         bricks.push_back(brick);
       }
     }
     levels_.push_back(bricks);
+
+    // Level 2
     bricks.clear();
+    for (int i = 5; i < 10; i++) {
+      for (int j = 1; j < 10; j++) {
+        ci::vec2 location = cinder::vec2(
+          i * (kBrickOffset + kBrickWidth) + kWallOffset,
+          j * (kBrickOffset + kBrickHeight) + kWallOffset);
+        BrickBreaker::brick brick = BrickBreaker::brick(location, kDefaultBrickHealth);
+        bricks.push_back(brick);
+      }
+    }
+    levels_.push_back(bricks);
+
+    // Level 3
+    bricks.clear();
+    for (int i = 5; i < 10; i++) {
+      for (int j = 1; j < 10; j++) {
+        ci::vec2 location = cinder::vec2(
+          i * (kBrickOffset + kBrickWidth) + kWallOffset,
+          j * (kBrickOffset + kBrickHeight) + kWallOffset);
+        BrickBreaker::brick brick = BrickBreaker::brick(location, kDefaultBrickHealth);
+        bricks.push_back(brick);
+      }
+    }
+    levels_.push_back(bricks);
+  }
+
+  void MyApp::DrawMenuScreen() {
+    cinder::gl::color(0, 0, 1);
+    cinder::gl::lineWidth(10);
+    for (int i = 1; i < kMenuGridX; i++) {
+      cinder::gl::drawLine(ci::vec2(i * menu_grid_width_, getWindowBounds().y1), ci::vec2(i * menu_grid_width_, getWindowBounds().y2));
+    }
+    for (int j = 1; j < kMenuGridX; j++) {
+      cinder::gl::drawLine(ci::vec2(getWindowBounds().x1, j * menu_grid_height_), ci::vec2(getWindowBounds().x2, j * menu_grid_height_));
+    }
+    if (clicks_ > last_click_count_) {
+      int level = GetLevelClicked(last_mouse_loc_);
+      if (level != -1) {
+        level_clicked_ = true;
+        SelectLevel(level);
+      }
+    }
+    last_click_count_ = clicks_;
+  }
+
+  int MyApp::GetLevelClicked(ci::vec2 loc_clicked) {
+    for (int i = 0; i < kMenuGridX; i++) {
+      for (int j = 0; j < kMenuGridY; j++) {
+        if (loc_clicked.x > i * menu_grid_width_ &&
+            loc_clicked.x < (i + 1) * menu_grid_width_ &&
+            loc_clicked.y > j * menu_grid_height_ &&
+            loc_clicked.y < (j + 1) * menu_grid_height_) {
+          return i + j*menu_grid_width_;
+        }
+      }
+    }
+    return -1;
   }
 
 }  // namespace myapp

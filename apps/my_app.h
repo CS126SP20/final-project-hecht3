@@ -23,23 +23,29 @@ class MyApp : public cinder::app::App {
   void draw() override;
   void mouseMove(cinder::app::MouseEvent event) override;
   void mouseDrag(cinder::app::MouseEvent event) override;
-  void RemoveBrick(int brick_id);
-  void RemoveBall(int ball_id);
-  void RemovePlatform(int platform_id);
+  void mouseDown(cinder::app::MouseEvent event) override;
   void UpdateBricks();
   void UpdateBalls();
   void UpdatePlatforms();
   bool CheckTopBottomCollision(BrickBreaker::ball ball, BrickBreaker::brick brick);
   bool CheckSideCollision(BrickBreaker::ball ball, BrickBreaker::brick brick);
+  void DrawMenuScreen();
   void SelectLevel(int level_number);
   void GenerateLevels();
+  int GetLevelClicked(ci::vec2 loc_clicked);
 
   std::vector<BrickBreaker::ball> balls_;
   std::vector<BrickBreaker::brick> bricks_;
   std::vector<BrickBreaker::platform> platforms_;
   std::vector<std::vector<BrickBreaker::brick>> levels_;
+  int clicks_;
+  bool level_clicked_;
+  int last_click_count_;
+  int menu_grid_width_;
+  int menu_grid_height_;
 
   uint64_t time_;
+  uint64_t last_collision_time_;
 
   bool is_start_;
 
