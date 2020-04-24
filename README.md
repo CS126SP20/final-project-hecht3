@@ -19,13 +19,14 @@ I have very little background knowledge about this project. I've played brick br
 I will use Cinder for the graphics. As far as I can tell, Cinder should be capable of supporting the full graphics implementation, however if it turns out to not be sufficient, I will use LiquidFun (https://github.com/google/liquidfun/tree/master/liquidfun) or Box2D (https://github.com/erincatto/box2d) (LiquidFun is based off of Box2d). For my additional library, I will use OpenAL (https://www.openal.org/) because I think it will provide better audio support than the Cinder audio library.
 
 **End of Week 1**
-- Complete basic code structure
-- Have basic UI set up (without functionality)
-- Select sounds for different actions in game
+- Completed basic code structure
+- Set up UI an basic level
+- Completed physics for ball, brick, platform
 
 **End of Week 2**
-- Set up physics in game and be able to move platform at bottom of screen
-- Have created one simple level to play
+- Add sounds for collisions
+- Add textures for objects so that graphics look more sophisticated
+- Add menu for selecting levels
 
 **End of Week 3**
 - Implement more levels with greater complexity
