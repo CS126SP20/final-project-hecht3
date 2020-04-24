@@ -20,7 +20,7 @@ I will use Cinder for the graphics. As far as I can tell, Cinder should be capab
 
 **End of Week 1**
 - Completed basic code structure
-- Set up UI an basic level
+- Set up UI and basic level
 - Completed physics for ball, brick, platform
 
 **End of Week 2**
