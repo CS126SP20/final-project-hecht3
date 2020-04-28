@@ -1,6 +1,7 @@
 get_filename_component(CINDER_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../" ABSOLUTE)
 include("${CINDER_PATH}/proj/cmake/modules/cinderMakeApp.cmake")
 
+
 file(GLOB SOURCE_LIST CONFIGURE_DEPENDS
         "${FinalProject_SOURCE_DIR}/apps/*.h"
         "${FinalProject_SOURCE_DIR}/apps/*.hpp"
@@ -37,3 +38,4 @@ elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
     target_compile_options(cinder-myapp PRIVATE
             /W3)
 endif ()
+

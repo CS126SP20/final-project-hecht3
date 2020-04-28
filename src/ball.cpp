@@ -7,7 +7,7 @@
 
 namespace BrickBreaker {
 
-  const double kFrictionCoefficient = 500;
+  const double kFrictionCoefficient = 1000;
   const double kMaxSpeedThreshold = 7.0;
 
   ball::ball(cinder::vec2 location, double speed, ci::vec2 dir) {
@@ -37,7 +37,7 @@ namespace BrickBreaker {
   void ball::WallCollision() {
     dir_.x = -dir_.x;
     if (speed_ < kMaxSpeedThreshold) {
-      speed_ += .01;
+      speed_ += .05;
     }
   }
 

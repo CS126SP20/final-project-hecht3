@@ -87,3 +87,11 @@ if(NOT catch2_POPULATED)
 endif()
 
 # Add more CMake libraries here ...
+
+list(APPEND SYSTEM "/home/connell/OpenAL/openal-soft/cmake")
+add_library(FinalProject ${PROJECT_BINARY_DIR})
+include(FindPkgConfig)
+find_package(OpenAL)
+include_directories(SYSTEM "/home/connell/OpenAL/openal-soft/include/AL")
+set_target_properties(FinalProject PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(FinalProject OpenAL::OpenAL)
