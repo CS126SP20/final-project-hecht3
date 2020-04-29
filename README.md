@@ -25,13 +25,13 @@ I will use Cinder for the graphics. As far as I can tell, Cinder should be capab
 
 **End of Week 2**
 - Add sounds for collisions
-- Add textures for objects so that graphics look more sophisticated
 - Add menu for selecting levels
 
 **End of Week 3**
 - Implement more levels with greater complexity
 - Implement power-up features
 - Make bricks that are of different types
+- Add textures for objects so that different types of bricks are properly represented
 
 **This schedule is tentative and will likely change depending on the true difficulty of each task which I have no way of knowing right now**
 
