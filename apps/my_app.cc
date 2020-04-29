@@ -5,11 +5,10 @@
 #include <cinder/app/App.h>
 #include <cinder/gl/wrapper.h>
 #include <cinder/gl/gl.h>
-#include <AL/al.h>
 
+// Brick sound from: https://freesound.org/people/kramsttop/sounds/170910/
 
 namespace myapp {
-  ALboolean a = false;
 
 
 // Following definitions are from Snake assignment

@@ -4,13 +4,45 @@
 
 #include <BrickBreaker/ball.h>
 #include <cinder/gl/gl.h>
+#include <AL/al.h>
+#include <AL/alc.h>
 
 namespace BrickBreaker {
 
   const double kFrictionCoefficient = 1000;
   const double kMaxSpeedThreshold = 7.0;
+//  const ALCchar *defaultDeviceName = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
+//  ALCdevice *device = alcOpenDevice(defaultDeviceName);
+//  ALCcontext *context = alcCreateContext(device, NULL);
+//  char*     alBuffer;             //data for the buffer
+//  ALenum alFormatBuffer;    //buffer format
+//  ALsizei   alFreqBuffer;       //frequency
+//  long       alBufferLen;        //bit depth
+//  ALboolean    alLoop;         //loop
+//  unsigned int alSource;      //source
+//  unsigned int alSampleSet;
+
+
 
   ball::ball(cinder::vec2 location, double speed, ci::vec2 dir) {
+//    //load the wave file
+//    loadWAVFile("brick_tap.wav", alFormatBuffer, alBufferData, alBufferLen, alFreqBuffer, alLoop);
+//
+//    //create a source
+//    alGenSources(1, reinterpret_cast<ALuint *>(alSource));
+//
+//    //create  buffer
+//    alGenBuffers(1, &amp;alSampleSet);
+//
+//    //put the data into our sampleset buffer
+//    alBufferData(alSampleSet, alFormatBuffer, alBuffer, alBufferLen, alFreqBuffer);
+//
+//    //assign the buffer to this source
+//    alSourcei(alSource, AL_BUFFER, alSampleSet);
+//
+//    //release the data
+//    alutUnloadWAV(alFormatBuffer, alBuffer, alBufferLen, alFreqBuffer);
+
     loc_ = location;
     radius_ = kDefaultBallRadius;
     speed_ = speed;
