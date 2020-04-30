@@ -7,6 +7,7 @@
 #include <BrickBreaker/ball.h>
 #include <BrickBreaker/brick.h>
 #include <BrickBreaker/platform.h>
+#include <BrickBreaker/powerup.h>
 
 
 namespace myapp {
@@ -27,6 +28,7 @@ class MyApp : public cinder::app::App {
   void UpdateBricks();
   void UpdateBalls();
   void UpdatePlatforms();
+  void UpdatePowerups();
   bool CheckTopBottomCollision(BrickBreaker::ball ball, BrickBreaker::brick brick);
   bool CheckSideCollision(BrickBreaker::ball ball, BrickBreaker::brick brick);
   void DrawMenuScreen();
@@ -39,6 +41,7 @@ class MyApp : public cinder::app::App {
   std::vector<BrickBreaker::ball> balls_;
   std::vector<BrickBreaker::brick> bricks_;
   std::vector<BrickBreaker::platform> platforms_;
+  std::vector<BrickBreaker::powerup> powerups_;
   std::vector<std::vector<BrickBreaker::brick>> levels_;
   int clicks_;
   bool level_clicked_;

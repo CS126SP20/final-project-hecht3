@@ -33,6 +33,7 @@ namespace myapp {
   const int kCollisionPixelThreshold = 3;
   const int kMenuGridDim = 5;
   const int kDefaultBallHitHealthDecrease = 100;
+  const int kTenthOfSecondInMicroseconds = 100000;
 
   void MyApp::setup() {
     menu_grid_width_ = cinder::app::getWindowBounds().x2 / kMenuGridDim;
@@ -137,13 +138,15 @@ namespace myapp {
 
   void MyApp::UpdateBalls() {
     for (auto ball_iterator = balls_.begin(); ball_iterator != balls_.end();) {
-      if (last_click_count_ < clicks_) {
+      if (last_click_count_ < clicks_ && is_start_) {
         is_start_ = false;
         ball_iterator->dir_ = ci::vec2(
           ball_iterator->loc_.x - last_mouse_loc_.x,
           ball_iterator->loc_.y - last_mouse_loc_.y);
         last_click_count_ = clicks_;
       }
+      // We can get platforms[0] here because at the start, platforms are always
+      // initialized before balls
       if (is_start_) {
         ball_iterator->loc_ = ci::vec2(platforms_[0].GetPlatformTopMiddle().x,
                                        platforms_[0].GetPlatformTopMiddle().y -
@@ -169,7 +172,7 @@ namespace myapp {
               platform.GetPlatformBounds().getY1() -
               ball_iterator->GetRadius()) {
             // Prevent ball getting stuck in constant platform collisions
-            if (time_ - last_collision_time_ > 100000) {
+            if (time_ - last_collision_time_ > kTenthOfSecondInMicroseconds) {
               ball_iterator->PlatformCollision(mouse_vel_);
               last_collision_time_ = time_;
             }
@@ -181,6 +184,28 @@ namespace myapp {
         ball_iterator = balls_.erase(ball_iterator);
       } else {
         ++ball_iterator;
+      }
+    }
+  }
+
+  void MyApp::UpdatePowerups() {
+    for (auto powerup_iterator = powerups_.begin();
+         powerup_iterator != powerups_.end();) {
+      for (auto platform_iterator = platforms_.begin();
+           platform_iterator != platforms_.end(); ++platform_iterator) {
+        if (powerup_iterator->loc_.x + kCollisionPixelThreshold >=
+            platform_iterator->loc_.x && powerup_iterator->loc_.x <=
+                                         platform_iterator->loc_.x +
+                                         kCollisionPixelThreshold) {
+          if (powerup_iterator->type_ == BrickBreaker::BALL) {
+
+          } else if (powerup_iterator->type_ == BrickBreaker::PLATFORM) {
+
+          }
+          powerup_iterator = powerups_.erase(powerup_iterator);
+        } else {
+          ++powerup_iterator;
+        }
       }
     }
   }

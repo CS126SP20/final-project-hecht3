@@ -19,6 +19,7 @@ namespace BrickBreaker {
   public:
     cinder::vec2 loc_;
     int health_;
+    bool has_powerup_;
 
     brick(cinder::vec2 location, int health);
     void update();

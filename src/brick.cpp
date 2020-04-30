@@ -6,13 +6,19 @@
 #include <cinder/gl/gl.h>
 
 namespace BrickBreaker {
+  const int kPowerupProb = 90;
+  const int kPowerupProbDenom = 100;
 
   brick::brick(cinder::vec2 location, int health) {
     loc_ = location;
+    has_powerup_ = false;
     if (health < kMaxHealth) {
       health_ = health;
     } else {
       health_ = kDefaultBrickHealth;
+    }
+    if (rand() % kPowerupProbDenom > kPowerupProb) {
+      has_powerup_ = true;
     }
     draw();
   }
