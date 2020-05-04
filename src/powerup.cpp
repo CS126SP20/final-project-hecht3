@@ -11,6 +11,7 @@ namespace BrickBreaker {
     speed_ = speed;
     size_ = kPowerupSize;
     type_ = powerup_type(rand() % kPowerupNumTypes);
+    dir_ = ci::vec2(0, 1 / sqrt(2));
   }
 
   void powerup::update() {

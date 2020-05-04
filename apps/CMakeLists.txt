@@ -8,14 +8,14 @@ file(GLOB SOURCE_LIST CONFIGURE_DEPENDS
         "${FinalProject_SOURCE_DIR}/apps/*.cc"
         "${FinalProject_SOURCE_DIR}/apps/*.cpp")
 
-
 ci_make_app(
     APP_NAME    cinder-myapp
     CINDER_PATH ${CINDER_PATH}
     SOURCES     ${SOURCE_LIST}
     LIBRARIES   mylibrary
-    BLOCKS
+    BLOCK       poSoundManager
 )
+
 
 target_compile_features(cinder-myapp PRIVATE cxx_std_14)
 
@@ -38,4 +38,5 @@ elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
     target_compile_options(cinder-myapp PRIVATE
             /W3)
 endif ()
+
 

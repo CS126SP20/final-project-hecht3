@@ -5,11 +5,12 @@
 #include <cinder/app/App.h>
 #include <cinder/gl/wrapper.h>
 #include <cinder/gl/gl.h>
+#include <stdio.h>
+#include </home/connell/Cinder/blocks/Cinder-poSoundManager/src/poSoundManager/poSoundManager.h>
 
 // Brick sound from: https://freesound.org/people/kramsttop/sounds/170910/
 
 namespace myapp {
-
 
 // Following definitions are from Snake assignment
 #if defined(CINDER_COCOA_TOUCH)
@@ -25,7 +26,6 @@ namespace myapp {
   const char kBoldFont[] = "Arial Bold";
   const char kDifferentFont[] = "Papyrus";
 #endif
-
   using cinder::app::KeyEvent;
 
   const int kBrickOffset = 30;
@@ -34,8 +34,11 @@ namespace myapp {
   const int kMenuGridDim = 5;
   const int kDefaultBallHitHealthDecrease = 100;
   const int kTenthOfSecondInMicroseconds = 100000;
+  const int kBallPowerupCreationNum = 5;
 
   void MyApp::setup() {
+    ci::DataSourceRef source = cinder::app::loadAsset("assets/brick_tap.wav");
+    po::SoundManager::get()->play(source);
     menu_grid_width_ = cinder::app::getWindowBounds().x2 / kMenuGridDim;
     menu_grid_height_ = cinder::app::getWindowBounds().y2 / kMenuGridDim;
     is_start_ = true;
@@ -57,6 +60,7 @@ namespace myapp {
       UpdateBricks();
       UpdateBalls();
       UpdatePlatforms();
+      UpdatePowerups();
     }
   }
 
@@ -100,6 +104,13 @@ namespace myapp {
         }
       }
       if (brick_iterator->health_ <= 0) {
+        if (brick_iterator->has_powerup_) {
+          powerups_.emplace_back(ci::vec2(
+            (brick_iterator->GetLowerLeftCorner().x +
+             brick_iterator->GetLowerRightCorner().x) / 2,
+            (brick_iterator->GetLowerLeftCorner().y +
+             brick_iterator->GetLowerRightCorner().y) / 2), balls_[0].speed_);
+        }
         brick_iterator = bricks_.erase(brick_iterator);
       } else {
         ++brick_iterator;
@@ -114,7 +125,7 @@ namespace myapp {
     float change_in_mouse_loc_x = last_mouse_loc_.x - current_mouse_loc_.x;
     mouse_vel_ = change_in_mouse_loc_x / time_elapsed;
     for (auto platform_iterator = platforms_.begin();
-         platform_iterator != platforms_.end();) {
+         platform_iterator != platforms_.end(); ++platform_iterator) {
       if (last_mouse_loc_.x >
           getWindowBounds().x2 - kDefaultPlatformWidth / 2) {
         last_mouse_loc_.x = getWindowBounds().x2 - kDefaultPlatformWidth / 2;
@@ -125,11 +136,6 @@ namespace myapp {
       platform_iterator->loc_ = ci::vec2(last_mouse_loc_.x,
                                          platform_iterator->loc_.y);
       platform_iterator->update();
-      if (false) {
-        // Add condition here for power-up extension
-      } else {
-        ++platform_iterator;
-      }
     }
     time_ = std::chrono::duration_cast<std::chrono::microseconds>(
       std::chrono::high_resolution_clock::
@@ -193,12 +199,17 @@ namespace myapp {
          powerup_iterator != powerups_.end();) {
       for (auto platform_iterator = platforms_.begin();
            platform_iterator != platforms_.end(); ++platform_iterator) {
-        if (powerup_iterator->loc_.x + kCollisionPixelThreshold >=
-            platform_iterator->loc_.x && powerup_iterator->loc_.x <=
+        powerup_iterator->update();
+        if (powerup_iterator->loc_.x + BrickBreaker::kPowerupSize + kCollisionPixelThreshold >=
+            platform_iterator->loc_.x && powerup_iterator->loc_.x - BrickBreaker::kPowerupSize <=
                                          platform_iterator->loc_.x +
                                          kCollisionPixelThreshold) {
           if (powerup_iterator->type_ == BrickBreaker::BALL) {
-
+            for (int i = 0; i < kBallPowerupCreationNum; i++) {
+              BrickBreaker::ball ball_to_add = BrickBreaker::ball(
+                balls_[0].loc_, balls_[0].speed_, ci::vec2(rand() - rand(), rand() - rand()));
+              balls_.push_back(ball_to_add);
+            }
           } else if (powerup_iterator->type_ == BrickBreaker::PLATFORM) {
 
           }
@@ -256,6 +267,8 @@ namespace myapp {
     bricks_.clear();
     balls_.clear();
     platforms_.clear();
+    powerups_.clear();
+    is_start_ = true;
     for (int i = 0; i < levels_[level_number].size(); i++) {
       bricks_.push_back(levels_[level_number][i]);
     }
