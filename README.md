@@ -15,9 +15,11 @@ Author: Connell Hecht
 
 **Cinder**
 
-[Ubuntu](https://www.libcinder.org/docs/guides/linux-notes/ubuntu.html)
-[Windows](https://libcinder.org/docs/guides/windows-setup/index.html)
-[OS X](https://libcinder.org/docs/guides/mac-setup/index.html)
+- [Ubuntu](https://www.libcinder.org/docs/guides/linux-notes/ubuntu.html)
+
+- [Windows](https://libcinder.org/docs/guides/windows-setup/index.html)
+
+- [OS X](https://libcinder.org/docs/guides/mac-setup/index.html)
 
 **Cinder Block: poSoundManager**
 
