@@ -19,9 +19,9 @@ namespace BrickBreaker {
   }
 
   void platform::draw() {
-    ci::gl::color(0, 1, 0);
+    ci::gl::color(0.5f, 0.5f, 0.5f);
     cinder::Rectf rect = cinder::Rectf(loc_.x - (width_ / 2), loc_.y - (height_ / 2), loc_.x + (width_ / 2), loc_.y + (height_ / 2));
-    cinder::gl::drawSolidRect(rect);
+    cinder::gl::drawSolidRoundedRect(rect, 5);
   }
 
   ci::Rectf platform::GetPlatformBounds() {

@@ -11,6 +11,7 @@
 
 // Brick sound from: https://freesound.org/people/kramsttop/sounds/170910/
 // Brick Texture from: https://www.alamy.com/a-close-up-of-a-red-bricked-wall-bricky-texture-brickwork-jointed-background-seams-of-a-brick-wall-blocks-of-bricks-in-fence-construction-zooming-image222082661.html
+// Ball texture from: https://i.stack.imgur.com/xz5iG.png
 
 namespace myapp {
   using namespace cinder;
@@ -38,15 +39,18 @@ namespace myapp {
   const int kTenthOfSecondInMicroseconds = 100000;
   const int kBallPowerupCreationNum = 5;
   DataSourceRef brick_sound;
+  ImageSourceRef background;
+  gl::Texture2dRef background_texture;
 
   void MyApp::setup() {
-
+    background = loadImage(app::loadAsset("background.jpg"));
+    background_texture = (gl::Texture::create(background));
   }
 
   void MyApp::update() {
     if (balls_.size() == 0 && !is_start_) {
       const ivec2 size = {app::getWindowBounds().x2 / 2,
-                                  app::getWindowBounds().y2 / 2};
+                          app::getWindowBounds().y2 / 2};
       bricks_.clear();
       const Color color = Color(1, 0, 0);
       PrintText(std::string("Game over!"), color, size, getWindowCenter());
@@ -58,6 +62,9 @@ namespace myapp {
         SelectLevel(++current_level_);
       } else {
         gl::clear();
+        gl::color(1, 1, 1);
+        background_texture->bind();
+        gl::draw(background_texture, getWindowBounds());
         UpdateBricks();
         UpdateBalls();
         UpdatePlatforms();
@@ -151,7 +158,7 @@ namespace myapp {
           getWindowBounds().x1 + platform_iterator->GetPlatformWidth() / 2;
       }
       platform_iterator->loc_ = vec2(last_mouse_loc_.x,
-                                         platform_iterator->loc_.y);
+                                     platform_iterator->loc_.y);
       platform_iterator->update();
     }
     time_ = std::chrono::duration_cast<std::chrono::microseconds>(
@@ -172,8 +179,8 @@ namespace myapp {
       // initialized before balls
       if (is_start_) {
         ball_iterator->loc_ = vec2(platforms_[0].GetPlatformTopMiddle().x,
-                                       platforms_[0].GetPlatformTopMiddle().y -
-                                       ball_iterator->GetRadius());
+                                   platforms_[0].GetPlatformTopMiddle().y -
+                                   ball_iterator->GetRadius());
       } else if (ball_iterator->loc_.x <=
                  getWindowBounds().x1 + ball_iterator->GetRadius() ||
                  ball_iterator->loc_.x >=
@@ -217,12 +224,7 @@ namespace myapp {
       for (auto platform_iterator = platforms_.begin();
            platform_iterator != platforms_.end(); ++platform_iterator) {
         powerup_iterator->update();
-        if (powerup_iterator->loc_.x + BrickBreaker::kPowerupSize +
-            kCollisionPixelThreshold >=
-            platform_iterator->loc_.x &&
-            powerup_iterator->loc_.x - BrickBreaker::kPowerupSize <=
-            platform_iterator->loc_.x +
-            kCollisionPixelThreshold) {
+        if (CheckPowerupCollection(*powerup_iterator, *platform_iterator)) {
           if (powerup_iterator->type_ == BrickBreaker::BALL) {
             for (int i = 0; i < kBallPowerupCreationNum; i++) {
               BrickBreaker::ball ball_to_add = BrickBreaker::ball(
@@ -243,8 +245,8 @@ namespace myapp {
     }
   }
 
-  bool MyApp::CheckSideCollision(BrickBreaker::ball ball,
-                                 BrickBreaker::brick brick) {
+  bool MyApp::CheckSideCollision(BrickBreaker::ball &ball,
+                                 BrickBreaker::brick &brick) {
     bool within_vert_bound = ball.GetLocation().y + ball.GetRadius() >
                              brick.GetUpperLeftCorner().y &&
                              ball.GetLocation().y - ball.GetRadius() <
@@ -264,8 +266,8 @@ namespace myapp {
     return within_vert_bound && (brick_hit_left || brick_hit_right);
   }
 
-  bool MyApp::CheckTopBottomCollision(BrickBreaker::ball ball,
-                                      BrickBreaker::brick brick) {
+  bool MyApp::CheckTopBottomCollision(BrickBreaker::ball &ball,
+                                      BrickBreaker::brick &brick) {
     bool within_horiz_bound = ball.GetLocation().x + ball.GetRadius() >
                               brick.GetUpperLeftCorner().x &&
                               ball.GetLocation().x - ball.GetRadius() <
@@ -285,6 +287,21 @@ namespace myapp {
     return within_horiz_bound && (brick_hit_top || brick_hit_bottom);
   }
 
+  bool MyApp::CheckPowerupCollection(BrickBreaker::powerup &powerup,
+                                     BrickBreaker::platform &platform) {
+    bool within_sides =
+      powerup.loc_.x + BrickBreaker::kPowerupSize + kCollisionPixelThreshold >=
+      platform.GetPlatformBounds().x1 &&
+      powerup.loc_.x - BrickBreaker::kPowerupSize <=
+      platform.GetPlatformBounds().x2 + kCollisionPixelThreshold;
+    bool within_vertical =
+      powerup.loc_.y + BrickBreaker::kPowerupSize + kCollisionPixelThreshold >=
+      platform.GetPlatformBounds().y1 &&
+      powerup.loc_.y - BrickBreaker::kPowerupSize <=
+      platform.GetPlatformBounds().y2 + kCollisionPixelThreshold;
+    return within_sides && within_vertical;
+  }
+
   void MyApp::SelectLevel(size_t level_number) {
     bricks_.clear();
     balls_.clear();
@@ -295,7 +312,7 @@ namespace myapp {
       bricks_.push_back(i);
     }
     vec2 platform_init_loc = vec2(getWindowCenter().x,
-                                          getWindowBounds().y2 - kWallOffset);
+                                  getWindowBounds().y2 - kWallOffset);
     BrickBreaker::platform platform = BrickBreaker::platform(platform_init_loc);
     platforms_.push_back(platform);
     BrickBreaker::ball ball = BrickBreaker::ball(
@@ -317,8 +334,8 @@ namespace myapp {
         PrintText(std::to_string(i + j * kMenuGridDim), color, size, center);
       }
       gl::drawLine(vec2(i * menu_grid_width_, getWindowBounds().y1),
-                           vec2(i * menu_grid_width_,
-                                    getWindowBounds().y2));
+                   vec2(i * menu_grid_width_,
+                        getWindowBounds().y2));
       gl::drawLine(
         vec2(getWindowBounds().x1, i * menu_grid_height_),
         vec2(getWindowBounds().x2, i * menu_grid_height_));

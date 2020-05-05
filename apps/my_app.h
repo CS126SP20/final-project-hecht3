@@ -28,8 +28,9 @@ class MyApp : public cinder::app::App {
   void UpdateBalls();
   void UpdatePlatforms();
   void UpdatePowerups();
-  bool CheckTopBottomCollision(BrickBreaker::ball ball, BrickBreaker::brick brick);
-  bool CheckSideCollision(BrickBreaker::ball ball, BrickBreaker::brick brick);
+  bool CheckTopBottomCollision(BrickBreaker::ball &ball, BrickBreaker::brick &brick);
+  bool CheckSideCollision(BrickBreaker::ball &ball, BrickBreaker::brick &brick);
+  bool CheckPowerupCollection(BrickBreaker::powerup &powerup, BrickBreaker::platform &platform);
   void DrawMenuScreen();
   void SelectLevel(size_t level_number);
   size_t GetLevelClicked(ci::vec2 loc_clicked);

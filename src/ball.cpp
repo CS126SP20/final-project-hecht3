@@ -6,10 +6,10 @@
 #include <cinder/gl/gl.h>
 
 namespace BrickBreaker {
+  using namespace cinder;
 
   const double kFrictionCoefficient = 800;
   const double kMaxSpeedThreshold = 7.0;
-
 
   ball::ball(cinder::vec2 location, double speed, ci::vec2 dir) {
 
@@ -17,6 +17,7 @@ namespace BrickBreaker {
     radius_ = kDefaultBallRadius;
     speed_ = speed;
     dir_ = dir;
+
     draw();
   }
 
@@ -32,7 +33,7 @@ namespace BrickBreaker {
   }
 
   void ball::draw() {
-    cinder::gl::color(1, 0, 0);
+    cinder::gl::color(0, 0, 0);
     cinder::gl::drawSolidCircle(loc_, radius_);
   }
 
