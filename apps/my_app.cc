@@ -6,7 +6,8 @@
 #include <cinder/gl/wrapper.h>
 #include <cinder/gl/gl.h>
 #include <stdio.h>
-#include </home/connell/Cinder/blocks/Cinder-poSoundManager/src/poSoundManager/poSoundManager.h>
+#include <BrickBreaker/levels.h>
+#include <Sound/poSoundManager.h>
 
 // Brick sound from: https://freesound.org/people/kramsttop/sounds/170910/
 
@@ -28,25 +29,16 @@ namespace myapp {
 #endif
   using cinder::app::KeyEvent;
 
-  const int kBrickOffset = 30;
   const int kWallOffset = 15;
   const int kCollisionPixelThreshold = 3;
   const int kMenuGridDim = 5;
   const int kDefaultBallHitHealthDecrease = 100;
   const int kTenthOfSecondInMicroseconds = 100000;
   const int kBallPowerupCreationNum = 5;
+  ci::DataSourceRef brick_sound;
 
   void MyApp::setup() {
-    ci::DataSourceRef source = cinder::app::loadAsset("assets/brick_tap.wav");
-    po::SoundManager::get()->play(source);
-    menu_grid_width_ = cinder::app::getWindowBounds().x2 / kMenuGridDim;
-    menu_grid_height_ = cinder::app::getWindowBounds().y2 / kMenuGridDim;
-    is_start_ = true;
-    level_clicked_ = false;
-    time_ = 0;
-    last_collision_time_ = time_;
-    clicks_ = 0;
-    GenerateLevels();
+
   }
 
   void MyApp::update() {
@@ -84,7 +76,16 @@ namespace myapp {
 
 
   MyApp::MyApp() {
-
+    brick_sound = cinder::app::loadAsset(
+      "/home/connell/Cinder/projects/final-project-hecht3/assets/brick_tap.wav");
+    menu_grid_width_ = cinder::app::getWindowBounds().x2 / kMenuGridDim;
+    menu_grid_height_ = cinder::app::getWindowBounds().y2 / kMenuGridDim;
+    is_start_ = true;
+    level_clicked_ = false;
+    time_ = 0;
+    last_collision_time_ = time_;
+    clicks_ = 0;
+    levels_ = BrickBreaker::levels::GenerateLevels();
   }
 
   void MyApp::UpdateBricks() {
@@ -97,10 +98,12 @@ namespace myapp {
         if (CheckTopBottomCollision(*ball_iterator, *brick_iterator)) {
           brick_iterator->health_ -= kDefaultBallHitHealthDecrease;
           ball_iterator->BrickTopBottomCollision();
+          po::SoundManager::get()->play(brick_sound);
         } else if (CheckSideCollision(*ball_iterator,
                                       *brick_iterator)) {
           brick_iterator->health_ -= kDefaultBallHitHealthDecrease;
           ball_iterator->BrickSideCollision();
+          po::SoundManager::get()->play(brick_sound);
         }
       }
       if (brick_iterator->health_ <= 0) {
@@ -124,14 +127,18 @@ namespace myapp {
       now().time_since_epoch()).count() - time_;
     float change_in_mouse_loc_x = last_mouse_loc_.x - current_mouse_loc_.x;
     mouse_vel_ = change_in_mouse_loc_x / time_elapsed;
+
     for (auto platform_iterator = platforms_.begin();
          platform_iterator != platforms_.end(); ++platform_iterator) {
       if (last_mouse_loc_.x >
-          getWindowBounds().x2 - kDefaultPlatformWidth / 2) {
-        last_mouse_loc_.x = getWindowBounds().x2 - kDefaultPlatformWidth / 2;
+          getWindowBounds().x2 - platform_iterator->GetPlatformWidth() / 2) {
+        last_mouse_loc_.x =
+          getWindowBounds().x2 - platform_iterator->GetPlatformWidth() / 2;
       } else if (last_mouse_loc_.x <
-                 getWindowBounds().x1 + kDefaultPlatformWidth / 2) {
-        last_mouse_loc_.x = getWindowBounds().x1 + kDefaultPlatformWidth / 2;
+                 getWindowBounds().x1 +
+                 platform_iterator->GetPlatformWidth() / 2) {
+        last_mouse_loc_.x =
+          getWindowBounds().x1 + platform_iterator->GetPlatformWidth() / 2;
       }
       platform_iterator->loc_ = ci::vec2(last_mouse_loc_.x,
                                          platform_iterator->loc_.y);
@@ -200,18 +207,24 @@ namespace myapp {
       for (auto platform_iterator = platforms_.begin();
            platform_iterator != platforms_.end(); ++platform_iterator) {
         powerup_iterator->update();
-        if (powerup_iterator->loc_.x + BrickBreaker::kPowerupSize + kCollisionPixelThreshold >=
-            platform_iterator->loc_.x && powerup_iterator->loc_.x - BrickBreaker::kPowerupSize <=
-                                         platform_iterator->loc_.x +
-                                         kCollisionPixelThreshold) {
+        if (powerup_iterator->loc_.x + BrickBreaker::kPowerupSize +
+            kCollisionPixelThreshold >=
+            platform_iterator->loc_.x &&
+            powerup_iterator->loc_.x - BrickBreaker::kPowerupSize <=
+            platform_iterator->loc_.x +
+            kCollisionPixelThreshold) {
           if (powerup_iterator->type_ == BrickBreaker::BALL) {
             for (int i = 0; i < kBallPowerupCreationNum; i++) {
               BrickBreaker::ball ball_to_add = BrickBreaker::ball(
-                balls_[0].loc_, balls_[0].speed_, ci::vec2(rand() - rand(), rand() - rand()));
+                balls_[0].loc_, balls_[0].speed_,
+                ci::vec2(rand() - rand(), rand() - rand()));
               balls_.push_back(ball_to_add);
             }
           } else if (powerup_iterator->type_ == BrickBreaker::PLATFORM) {
-
+            for (auto platform_iterator = platforms_.begin();
+                 platform_iterator != platforms_.end(); ++platform_iterator) {
+              platform_iterator->IncreaseWidth(kDefaultPlatformWidthIncreaseFactor);
+            }
           }
           powerup_iterator = powerups_.erase(powerup_iterator);
         } else {
@@ -280,64 +293,6 @@ namespace myapp {
       ci::vec2(platform.loc_.x, platform.loc_.y - platform.height_),
       kDefaultBallSpeed, ci::vec2(10, -10));
     balls_.push_back(ball);
-  }
-
-  void MyApp::GenerateLevels() {
-    std::vector<BrickBreaker::brick> bricks;
-    // Level 1
-    for (int i = 0; i < 10; i++) {
-      for (int j = 1; j < 10; j++) {
-        ci::vec2 location = cinder::vec2(
-          i * (kBrickOffset + kBrickWidth) + kWallOffset,
-          j * (kBrickOffset + kBrickHeight) + kWallOffset);
-        BrickBreaker::brick brick = BrickBreaker::brick(location,
-                                                        kDefaultBrickHealth);
-        bricks.push_back(brick);
-      }
-    }
-    levels_.push_back(bricks);
-
-    // Level 2
-    bricks.clear();
-    for (int i = 8; i < 10; i++) {
-      for (int j = 8; j < 10; j++) {
-        ci::vec2 location = cinder::vec2(
-          i * (kBrickOffset + kBrickWidth) + kWallOffset,
-          j * (kBrickOffset + kBrickHeight) + kWallOffset);
-        BrickBreaker::brick brick = BrickBreaker::brick(location,
-                                                        kDefaultBrickHealth);
-        bricks.push_back(brick);
-      }
-    }
-    levels_.push_back(bricks);
-
-    // Level 3
-    bricks.clear();
-    for (int i = 5; i < 10; i++) {
-      for (int j = 1; j < 10; j++) {
-        ci::vec2 location = cinder::vec2(
-          i * (kBrickOffset + kBrickWidth) + kWallOffset,
-          j * (kBrickOffset + kBrickHeight) + kWallOffset);
-        BrickBreaker::brick brick = BrickBreaker::brick(location,
-                                                        kDefaultBrickHealth);
-        bricks.push_back(brick);
-      }
-    }
-    levels_.push_back(bricks);
-
-    // Level 4
-    bricks.clear();
-    for (int i = 5; i < 10; i++) {
-      for (int j = 1; j < 10; j++) {
-        ci::vec2 location = cinder::vec2(
-          i * (kBrickOffset + kBrickWidth) + kWallOffset,
-          j * (kBrickOffset + kBrickHeight) + kWallOffset);
-        BrickBreaker::brick brick = BrickBreaker::brick(location,
-                                                        kDefaultBrickHealth);
-        bricks.push_back(brick);
-      }
-    }
-    levels_.push_back(bricks);
   }
 
   void MyApp::DrawMenuScreen() {

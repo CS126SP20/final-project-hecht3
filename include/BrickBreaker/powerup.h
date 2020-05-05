@@ -7,6 +7,8 @@
 
 #include <cinder/gl/gl.h>
 
+const double kDefaultPlatformWidthIncreaseFactor = 1.5;
+
 namespace BrickBreaker {
 
   const int kPowerupNumTypes = 2;

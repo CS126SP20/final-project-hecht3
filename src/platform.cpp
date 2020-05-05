@@ -32,5 +32,13 @@ namespace BrickBreaker {
     return ci::vec2(loc_.x, loc_.y - kPlatformHeight / 2);
   }
 
+  int platform::GetPlatformWidth() {
+    return width_;
+  }
+
+  void platform::IncreaseWidth(double width_increase_factor) {
+    width_ = width_increase_factor * width_;
+  }
+
 
 }

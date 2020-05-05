@@ -22,6 +22,8 @@ namespace BrickBreaker {
     void draw();
     cinder::vec2 GetPlatformTopMiddle();
     ci::Rectf GetPlatformBounds(); // Only return the top of the platform
+    int GetPlatformWidth();
+    void IncreaseWidth(double width_increase_factor);
   };
 }
 
