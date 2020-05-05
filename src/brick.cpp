@@ -6,10 +6,14 @@
 #include <cinder/gl/gl.h>
 
 namespace BrickBreaker {
+  using namespace cinder;
+  
   const int kPowerupProb = 90;
   const int kPowerupProbDenom = 100;
+  ImageSourceRef img;
+  gl::Texture2dRef mTexture;
 
-  brick::brick(cinder::vec2 location, int health) {
+  brick::brick(const vec2& location, int health) {
     loc_ = location;
     has_powerup_ = false;
     if (health < kMaxHealth) {
@@ -20,7 +24,8 @@ namespace BrickBreaker {
     if (rand() % kPowerupProbDenom > kPowerupProb) {
       has_powerup_ = true;
     }
-    draw();
+    img = loadImage(app::loadAsset("brick.jpg"));
+    mTexture = (gl::Texture::create(img));
   }
 
   void brick::update() {
@@ -29,27 +34,29 @@ namespace BrickBreaker {
     }
   }
 
-  // Below is incorrect
   void brick::draw() {
-    ci::gl::color(0, 0, 1);
-    cinder::Rectf rect = cinder::Rectf(loc_.x, loc_.y, loc_.x + kBrickWidth, loc_.y + kBrickHeight);
-    cinder::gl::drawSolidRect(rect);
+    mTexture->bind();
+    gl::color(0, 0, 1);
+    gl::setMatricesWindow(app::getWindowSize());
+    Rectf rect = Rectf(loc_.x, loc_.y, loc_.x + kBrickWidth, loc_.y + kBrickHeight);
+//    gl::drawSolidRect(rect);
+    gl::draw(mTexture, rect);
   }
 
-  ci::vec2 brick::GetUpperLeftCorner() {
+  vec2 brick::GetUpperLeftCorner() {
     return loc_;
   }
 
-  ci::vec2 brick::GetUpperRightCorner() {
-    return ci::vec2(loc_.x + kBrickWidth, loc_.y);
+  vec2 brick::GetUpperRightCorner() {
+    return vec2(loc_.x + kBrickWidth, loc_.y);
   }
 
-  ci::vec2 brick::GetLowerLeftCorner() {
-    return ci::vec2(loc_.x, loc_.y + kBrickHeight);
+  vec2 brick::GetLowerLeftCorner() {
+    return vec2(loc_.x, loc_.y + kBrickHeight);
   }
 
-  ci::vec2 brick::GetLowerRightCorner() {
-    return ci::vec2(loc_.x + kBrickWidth, loc_.y + kBrickHeight);
+  vec2 brick::GetLowerRightCorner() {
+    return vec2(loc_.x + kBrickWidth, loc_.y + kBrickHeight);
   }
 }
 

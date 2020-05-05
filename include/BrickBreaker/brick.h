@@ -21,7 +21,7 @@ namespace BrickBreaker {
     int health_;
     bool has_powerup_;
 
-    brick(cinder::vec2 location, int health);
+    brick(const cinder::vec2& location, int health);
     void update();
     void draw();
     ci::vec2 GetUpperLeftCorner();

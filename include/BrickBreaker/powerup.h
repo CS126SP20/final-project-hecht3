@@ -19,8 +19,6 @@ namespace BrickBreaker {
   class powerup {
   public:
     powerup(cinder::vec2 location, double speed);
-    // Move assignment operator for deleting a powerup from a vector
-    //powerup& operator=(powerup&&) throw() {return *this;};
     cinder::vec2 dir_;
     size_t size_;
     double speed_;

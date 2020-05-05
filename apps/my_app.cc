@@ -10,8 +10,10 @@
 #include <Sound/poSoundManager.h>
 
 // Brick sound from: https://freesound.org/people/kramsttop/sounds/170910/
+// Brick Texture from: https://www.alamy.com/a-close-up-of-a-red-bricked-wall-bricky-texture-brickwork-jointed-background-seams-of-a-brick-wall-blocks-of-bricks-in-fence-construction-zooming-image222082661.html
 
 namespace myapp {
+  using namespace cinder;
 
 // Following definitions are from Snake assignment
 #if defined(CINDER_COCOA_TOUCH)
@@ -27,7 +29,7 @@ namespace myapp {
   const char kBoldFont[] = "Arial Bold";
   const char kDifferentFont[] = "Papyrus";
 #endif
-  using cinder::app::KeyEvent;
+  using app::KeyEvent;
 
   const int kWallOffset = 15;
   const int kCollisionPixelThreshold = 3;
@@ -35,40 +37,48 @@ namespace myapp {
   const int kDefaultBallHitHealthDecrease = 100;
   const int kTenthOfSecondInMicroseconds = 100000;
   const int kBallPowerupCreationNum = 5;
-  ci::DataSourceRef brick_sound;
+  DataSourceRef brick_sound;
 
   void MyApp::setup() {
 
   }
 
   void MyApp::update() {
-    if (!level_clicked_) {
-      DrawMenuScreen();
-    } else if (bricks_.empty()) {
-      is_start_ = true;
-      SelectLevel(++current_level_);
+    if (balls_.size() == 0 && !is_start_) {
+      const ivec2 size = {app::getWindowBounds().x2 / 2,
+                                  app::getWindowBounds().y2 / 2};
+      bricks_.clear();
+      const Color color = Color(1, 0, 0);
+      PrintText(std::string("Game over!"), color, size, getWindowCenter());
     } else {
-      ci::gl::clear();
-      UpdateBricks();
-      UpdateBalls();
-      UpdatePlatforms();
-      UpdatePowerups();
+      if (!level_clicked_) {
+        DrawMenuScreen();
+      } else if (bricks_.empty()) {
+        is_start_ = true;
+        SelectLevel(++current_level_);
+      } else {
+        gl::clear();
+        UpdateBricks();
+        UpdateBalls();
+        UpdatePlatforms();
+        UpdatePowerups();
+      }
     }
   }
 
   void MyApp::draw() {}
 
   // https://libcinder.org/docs/guides/tour/hello_cinder_chapter3.html
-  void MyApp::mouseMove(ci::app::MouseEvent event) {
+  void MyApp::mouseMove(app::MouseEvent event) {
     last_mouse_loc_ = current_mouse_loc_;
     current_mouse_loc_ = event.getPos();
   }
 
-  void MyApp::mouseDrag(ci::app::MouseEvent event) {
+  void MyApp::mouseDrag(app::MouseEvent event) {
     mouseMove(event);
   }
 
-  void MyApp::mouseDown(ci::app::MouseEvent event) {
+  void MyApp::mouseDown(app::MouseEvent event) {
     if (event.isLeft()) {
       clicks_++;
     }
@@ -76,10 +86,10 @@ namespace myapp {
 
 
   MyApp::MyApp() {
-    brick_sound = cinder::app::loadAsset(
-      "/home/connell/Cinder/projects/final-project-hecht3/assets/brick_tap.wav");
-    menu_grid_width_ = cinder::app::getWindowBounds().x2 / kMenuGridDim;
-    menu_grid_height_ = cinder::app::getWindowBounds().y2 / kMenuGridDim;
+    brick_sound = app::loadAsset("brick_tap.wav");
+    po::SoundManager::get();
+    menu_grid_width_ = app::getWindowBounds().x2 / kMenuGridDim;
+    menu_grid_height_ = app::getWindowBounds().y2 / kMenuGridDim;
     is_start_ = true;
     level_clicked_ = false;
     time_ = 0;
@@ -108,7 +118,7 @@ namespace myapp {
       }
       if (brick_iterator->health_ <= 0) {
         if (brick_iterator->has_powerup_) {
-          powerups_.emplace_back(ci::vec2(
+          powerups_.emplace_back(vec2(
             (brick_iterator->GetLowerLeftCorner().x +
              brick_iterator->GetLowerRightCorner().x) / 2,
             (brick_iterator->GetLowerLeftCorner().y +
@@ -140,7 +150,7 @@ namespace myapp {
         last_mouse_loc_.x =
           getWindowBounds().x1 + platform_iterator->GetPlatformWidth() / 2;
       }
-      platform_iterator->loc_ = ci::vec2(last_mouse_loc_.x,
+      platform_iterator->loc_ = vec2(last_mouse_loc_.x,
                                          platform_iterator->loc_.y);
       platform_iterator->update();
     }
@@ -153,7 +163,7 @@ namespace myapp {
     for (auto ball_iterator = balls_.begin(); ball_iterator != balls_.end();) {
       if (last_click_count_ < clicks_ && is_start_) {
         is_start_ = false;
-        ball_iterator->dir_ = ci::vec2(
+        ball_iterator->dir_ = vec2(
           ball_iterator->loc_.x - last_mouse_loc_.x,
           ball_iterator->loc_.y - last_mouse_loc_.y);
         last_click_count_ = clicks_;
@@ -161,7 +171,7 @@ namespace myapp {
       // We can get platforms[0] here because at the start, platforms are always
       // initialized before balls
       if (is_start_) {
-        ball_iterator->loc_ = ci::vec2(platforms_[0].GetPlatformTopMiddle().x,
+        ball_iterator->loc_ = vec2(platforms_[0].GetPlatformTopMiddle().x,
                                        platforms_[0].GetPlatformTopMiddle().y -
                                        ball_iterator->GetRadius());
       } else if (ball_iterator->loc_.x <=
@@ -217,13 +227,12 @@ namespace myapp {
             for (int i = 0; i < kBallPowerupCreationNum; i++) {
               BrickBreaker::ball ball_to_add = BrickBreaker::ball(
                 balls_[0].loc_, balls_[0].speed_,
-                ci::vec2(rand() - rand(), rand() - rand()));
+                vec2(rand() - rand(), rand() - rand()));
               balls_.push_back(ball_to_add);
             }
           } else if (powerup_iterator->type_ == BrickBreaker::PLATFORM) {
-            for (auto platform_iterator = platforms_.begin();
-                 platform_iterator != platforms_.end(); ++platform_iterator) {
-              platform_iterator->IncreaseWidth(kDefaultPlatformWidthIncreaseFactor);
+            for (auto &platform : platforms_) {
+              platform.IncreaseWidth(kDefaultPlatformWidthIncreaseFactor);
             }
           }
           powerup_iterator = powerups_.erase(powerup_iterator);
@@ -282,40 +291,40 @@ namespace myapp {
     platforms_.clear();
     powerups_.clear();
     is_start_ = true;
-    for (int i = 0; i < levels_[level_number].size(); i++) {
-      bricks_.push_back(levels_[level_number][i]);
+    for (const auto &i : levels_[level_number]) {
+      bricks_.push_back(i);
     }
-    ci::vec2 platform_init_loc = ci::vec2(getWindowCenter().x,
+    vec2 platform_init_loc = vec2(getWindowCenter().x,
                                           getWindowBounds().y2 - kWallOffset);
     BrickBreaker::platform platform = BrickBreaker::platform(platform_init_loc);
     platforms_.push_back(platform);
     BrickBreaker::ball ball = BrickBreaker::ball(
-      ci::vec2(platform.loc_.x, platform.loc_.y - platform.height_),
-      kDefaultBallSpeed, ci::vec2(10, -10));
+      vec2(platform.loc_.x, platform.loc_.y - platform.height_),
+      kDefaultBallSpeed, vec2(10, -10));
     balls_.push_back(ball);
   }
 
   void MyApp::DrawMenuScreen() {
-    cinder::gl::color(0, 0, 1);
-    cinder::gl::lineWidth(10);
+    gl::color(0, 0, 1);
+    gl::lineWidth(10);
     for (int i = 0; i <= kMenuGridDim; i++) {
       for (int j = 0; j <= kMenuGridDim; j++) {
-        const cinder::vec2 center = ci::vec2(
+        const vec2 center = vec2(
           i * menu_grid_width_ + (menu_grid_width_ / 2),
           j * menu_grid_height_ + menu_grid_height_ * .9);
-        const cinder::ivec2 size = {menu_grid_width_, menu_grid_height_};
-        const cinder::Color color = cinder::Color(0, 0, 1);
+        const ivec2 size = {menu_grid_width_, menu_grid_height_};
+        const Color color = Color(0, 0, 1);
         PrintText(std::to_string(i + j * kMenuGridDim), color, size, center);
       }
-      cinder::gl::drawLine(ci::vec2(i * menu_grid_width_, getWindowBounds().y1),
-                           ci::vec2(i * menu_grid_width_,
+      gl::drawLine(vec2(i * menu_grid_width_, getWindowBounds().y1),
+                           vec2(i * menu_grid_width_,
                                     getWindowBounds().y2));
-      cinder::gl::drawLine(
-        ci::vec2(getWindowBounds().x1, i * menu_grid_height_),
-        ci::vec2(getWindowBounds().x2, i * menu_grid_height_));
+      gl::drawLine(
+        vec2(getWindowBounds().x1, i * menu_grid_height_),
+        vec2(getWindowBounds().x2, i * menu_grid_height_));
     }
     if (clicks_ > last_click_count_) {
-      int level = GetLevelClicked(last_mouse_loc_);
+      size_t level = GetLevelClicked(last_mouse_loc_);
       if (level != -1) {
         level_clicked_ = true;
         SelectLevel(level);
@@ -324,7 +333,7 @@ namespace myapp {
     last_click_count_ = clicks_;
   }
 
-  int MyApp::GetLevelClicked(ci::vec2 loc_clicked) {
+  size_t MyApp::GetLevelClicked(vec2 loc_clicked) {
     for (int i = 0; i < kMenuGridDim; i++) {
       for (int j = 0; j < kMenuGridDim; j++) {
         if (loc_clicked.x > i * menu_grid_width_ &&
@@ -343,23 +352,23 @@ namespace myapp {
   // Following is from Snake project given code
   template<typename C>
   void MyApp::PrintText(const std::string &text, const C &color,
-                        const cinder::ivec2 &size,
-                        const cinder::vec2 &loc) {
-    cinder::gl::color(color);
+                        const ivec2 &size,
+                        const vec2 &loc) {
+    gl::color(color);
 
-    auto box = ci::TextBox()
-      .alignment(ci::TextBox::CENTER)
-      .font(cinder::Font(kNormalFont, 30))
+    auto box = TextBox()
+      .alignment(TextBox::CENTER)
+      .font(Font(kNormalFont, 30))
       .size(size)
       .color(color)
-      .backgroundColor(ci::ColorA(0, 0, 0, 0))
+      .backgroundColor(ColorA(0, 0, 0, 0))
       .text(text);
 
     const auto box_size = box.getSize();
-    const cinder::vec2 locp = {loc.x - box_size.x / 2, loc.y - box_size.y / 2};
+    const vec2 locp = {loc.x - box_size.x / 2, loc.y - box_size.y / 2};
     const auto surface = box.render();
-    const auto texture = cinder::gl::Texture::create(surface);
-    cinder::gl::draw(texture, locp);
+    const auto texture = gl::Texture::create(surface);
+    gl::draw(texture, locp);
   }
 
 }  // namespace myapp

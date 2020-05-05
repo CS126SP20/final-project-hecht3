@@ -32,7 +32,7 @@ class MyApp : public cinder::app::App {
   bool CheckSideCollision(BrickBreaker::ball ball, BrickBreaker::brick brick);
   void DrawMenuScreen();
   void SelectLevel(size_t level_number);
-  int GetLevelClicked(ci::vec2 loc_clicked);
+  size_t GetLevelClicked(ci::vec2 loc_clicked);
   template<typename C> void PrintText(const std::string &text, const C &color, const cinder::ivec2 &size,
                  const cinder::vec2 &loc);
 
