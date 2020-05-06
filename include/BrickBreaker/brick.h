@@ -9,7 +9,7 @@
 
 const int kBrickWidth = 50;
 const int kBrickHeight = 20;
-const int kDefaultBrickHealth = 100;
+const int kDefaultBrickHealth = 300;
 
 namespace BrickBreaker {
 
@@ -19,6 +19,7 @@ namespace BrickBreaker {
   public:
     cinder::vec2 loc_;
     int health_;
+    int full_health_;
     bool has_powerup_;
 
     brick(const cinder::vec2& location, int health);

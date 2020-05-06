@@ -17,7 +17,6 @@
 
 
 namespace myapp {
-  using namespace cinder;
 
 // Following definitions are from Snake assignment
 #if defined(CINDER_COCOA_TOUCH)
@@ -33,20 +32,45 @@ namespace myapp {
   const char kBoldFont[] = "Arial Bold";
   const char kDifferentFont[] = "Papyrus";
 #endif
+  using namespace cinder;
   using app::KeyEvent;
 
+  /** The default pixel offset from the wall for bricks being drawn. */
   const int kWallOffset = 15;
+  /**
+   * The threshold for how close an object has to get before a collision occurs.
+   */
   const int kCollisionPixelThreshold = 3;
+  /** The menu grid dimension. The menu is currently 5 by 5. */
   const int kMenuGridDim = 5;
+  /** The default amount of damage a ball does to a brick on collision. */
   const int kDefaultBallHitHealthDecrease = 100;
+  /**
+   * Tenth of a second in microseconds. Is used to prevent balls from getting
+   * stuck in constant collisions.
+   */
   const int kTwentiethOfSecondInMicroseconds = 50000;
+  /** The amount of balls the ball powerup creates. */
   const int kBallPowerupCreationNum = 5;
-  // 15 seconds for platform powerup
-  const int kDefaultPlatformPowerupDuration = 15000000;
+  /**
+   * The default amount of time for the platform powerup to last in microseconds.
+   * Is currently set to 10 seconds.
+   */
+  const int kDefaultPlatformPowerupDuration = 10000000;
+  /** The max level that has been created so far in levels.cpp */
+  const int kMaxLevel = 4;
+  /** Pixel offset to exclude window header. */
+  const int kWindowHeightOffset = 5;
+
+  /** The data source for the brick collision sound. */
   DataSourceRef brick_sound;
+  /** The data source for the platform collision sound. */
   DataSourceRef platform_sound;
+  /** The data source for the wall collision sound. */
   DataSourceRef wall_sound;
+  /** The image source for the background. */
   ImageSourceRef background;
+  /** The texture object for the background. */
   gl::Texture2dRef background_texture;
 
   void MyApp::setup() {
@@ -66,7 +90,11 @@ namespace myapp {
         DrawMenuScreen();
       } else if (bricks_.empty()) {
         is_start_ = true;
-        SelectLevel(++current_level_);
+        if (current_level_ <= max_level_) {
+          SelectLevel(++current_level_);
+        } else {
+          balls_.clear();
+        }
       } else {
         gl::clear();
         gl::color(1, 1, 1);
@@ -111,6 +139,8 @@ namespace myapp {
     time_ = 0;
     clicks_ = 0;
     platform_powerup_count_ = 0;
+    max_level_ = kMaxLevel;
+    current_level_ = 0;
     levels_ = BrickBreaker::levels::GenerateLevels();
   }
 
@@ -151,9 +181,7 @@ namespace myapp {
     double time_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
       std::chrono::high_resolution_clock::
       now().time_since_epoch()).count() - time_;
-    float change_in_mouse_loc_x = last_mouse_loc_.x - current_mouse_loc_.x;
-    mouse_vel_ = change_in_mouse_loc_x / time_elapsed;
-
+    last_platform_loc_ = platforms_[0].loc_;
     for (auto platform_iterator = platforms_.begin();
          platform_iterator != platforms_.end(); ++platform_iterator) {
       if (last_mouse_loc_.x >
@@ -170,6 +198,9 @@ namespace myapp {
                                      platform_iterator->loc_.y);
       platform_iterator->update();
     }
+    float change_in_platform_loc_x_ =
+      last_platform_loc_.x - platforms_[0].loc_.x;
+    platform_vel_ = change_in_platform_loc_x_ / time_elapsed;
     time_ = std::chrono::duration_cast<std::chrono::microseconds>(
       std::chrono::high_resolution_clock::
       now().time_since_epoch()).count();
@@ -192,16 +223,17 @@ namespace myapp {
                                    platforms_[0].GetPlatformTopMiddle().y -
                                    ball_iterator->GetRadius());
       } else if ((ball_iterator->loc_.x <=
-                 getWindowBounds().x1 + ball_iterator->GetRadius() ||
-                 ball_iterator->loc_.x >=
-                 getWindowBounds().x2 - ball_iterator->GetRadius()) &&
+                  getWindowBounds().x1 + ball_iterator->GetRadius() + kCollisionPixelThreshold ||
+                  ball_iterator->loc_.x  + kCollisionPixelThreshold >=
+                  getWindowBounds().x2 - ball_iterator->GetRadius()) &&
                  time_ - ball_iterator->last_collision_time_ >
                  kTwentiethOfSecondInMicroseconds) {
         ball_iterator->WallCollision();
         po::SoundManager::get()->play(wall_sound);
         ball_iterator->last_collision_time_ = time_;
       } else if (ball_iterator->loc_.y <=
-                 getWindowBounds().y1 + ball_iterator->GetRadius()) {
+                 getWindowBounds().y1 + kWindowHeightOffset +
+                 ball_iterator->GetRadius()) {
         if (time_ - ball_iterator->last_collision_time_ >
             kTwentiethOfSecondInMicroseconds) {
           ball_iterator->CeilingCollision();
@@ -224,7 +256,7 @@ namespace myapp {
             // Prevent ball getting stuck in constant platform collisions
             if (time_ - ball_iterator->last_collision_time_ >
                 kTwentiethOfSecondInMicroseconds) {
-              ball_iterator->PlatformCollision(mouse_vel_);
+              ball_iterator->PlatformCollision(platform_vel_);
               ball_iterator->last_collision_time_ = time_;
               if (play_platform_sound_) {
                 po::SoundManager::get()->play(platform_sound);
@@ -335,25 +367,6 @@ namespace myapp {
     return within_sides && within_vertical;
   }
 
-  void MyApp::SelectLevel(size_t level_number) {
-    bricks_.clear();
-    balls_.clear();
-    platforms_.clear();
-    powerups_.clear();
-    is_start_ = true;
-    for (const auto &i : levels_[level_number]) {
-      bricks_.push_back(i);
-    }
-    vec2 platform_init_loc = vec2(getWindowCenter().x,
-                                  getWindowBounds().y2 - kWallOffset);
-    BrickBreaker::platform platform = BrickBreaker::platform(platform_init_loc);
-    platforms_.push_back(platform);
-    BrickBreaker::ball ball = BrickBreaker::ball(
-      vec2(platform.loc_.x, platform.loc_.y - platform.height_),
-      kDefaultBallSpeed, vec2(10, -10));
-    balls_.push_back(ball);
-  }
-
   void MyApp::DrawMenuScreen() {
     gl::color(0, 0, 1);
     gl::lineWidth(10);
@@ -383,6 +396,25 @@ namespace myapp {
     last_click_count_ = clicks_;
   }
 
+  void MyApp::SelectLevel(size_t level_number) {
+    bricks_.clear();
+    balls_.clear();
+    platforms_.clear();
+    powerups_.clear();
+    is_start_ = true;
+    for (const auto &i : levels_[level_number]) {
+      bricks_.push_back(i);
+    }
+    vec2 platform_init_loc = vec2(getWindowCenter().x,
+                                  getWindowBounds().y2 - kWallOffset);
+    BrickBreaker::platform platform = BrickBreaker::platform(platform_init_loc);
+    platforms_.push_back(platform);
+    BrickBreaker::ball ball = BrickBreaker::ball(
+      vec2(platform.loc_.x, platform.loc_.y - platform.height_),
+      kDefaultBallSpeed, vec2(10, -10));
+    balls_.push_back(ball);
+  }
+
   size_t MyApp::GetLevelClicked(vec2 loc_clicked) {
     for (int i = 0; i < kMenuGridDim; i++) {
       for (int j = 0; j < kMenuGridDim; j++) {
@@ -391,11 +423,14 @@ namespace myapp {
             loc_clicked.y > j * menu_grid_height_ &&
             loc_clicked.y < (j + 1) * menu_grid_height_) {
           // True level number is the below number + 1 because of 0 indexing
-          current_level_ = i + j * menu_grid_width_;
-          return current_level_;
+          if (current_level_ <= max_level_) {
+            current_level_ = i + j * menu_grid_width_;
+            return current_level_;
+          }
         }
       }
     }
+    current_level_ = -1;
     return -1;
   }
 
