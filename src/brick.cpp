@@ -39,8 +39,6 @@ namespace BrickBreaker {
     gl::color(1, .6, 0);
     gl::setMatricesWindow(app::getWindowSize());
     Rectf rect = Rectf(loc_.x, loc_.y, loc_.x + kBrickWidth, loc_.y + kBrickHeight);
-    //geom::RoundedRect rectR = geom::RoundedRect(rect, 5);
-    //gl::drawSolidRoundedRect(rect, 5, 0, vec2(3, .5), vec2(.1, 7));
     gl::draw(mTexture, rect);
   }
 

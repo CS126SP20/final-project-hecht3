@@ -17,7 +17,8 @@ namespace BrickBreaker {
     double speed_;
     cinder::vec2 dir_;
     cinder::vec2 loc_;
-    explicit ball(cinder::vec2 location, double speed, ci::vec2 dir);
+    uint64_t last_collision_time_;
+    explicit ball(cinder::vec2 location, double speed, ci::vec2 dir, double radius = kDefaultBallRadius);
     void update();
     void draw();
     void WallCollision();

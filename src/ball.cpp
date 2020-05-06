@@ -11,14 +11,12 @@ namespace BrickBreaker {
   const double kFrictionCoefficient = 800;
   const double kMaxSpeedThreshold = 7.0;
 
-  ball::ball(cinder::vec2 location, double speed, ci::vec2 dir) {
+  ball::ball(vec2 location, double speed, vec2 dir, double radius) {
 
     loc_ = location;
-    radius_ = kDefaultBallRadius;
+    radius_ = radius;
     speed_ = speed;
     dir_ = dir;
-
-    draw();
   }
 
   void ball::update() {
@@ -33,8 +31,8 @@ namespace BrickBreaker {
   }
 
   void ball::draw() {
-    cinder::gl::color(0, 0, 0);
-    cinder::gl::drawSolidCircle(loc_, radius_);
+    gl::color(0, 0, 0);
+    gl::drawSolidCircle(loc_, radius_);
   }
 
   void ball::WallCollision() {
@@ -73,11 +71,11 @@ namespace BrickBreaker {
     }
   }
 
-  ci::vec2 ball::GetLocation() {
+  vec2 ball::GetLocation() {
     return loc_;
   }
 
-  ci::vec2 ball::GetDirection() {
+  vec2 ball::GetDirection() {
     return dir_;
   }
 

@@ -5,13 +5,14 @@
 #include <BrickBreaker/powerup.h>
 
 namespace BrickBreaker {
+  using namespace cinder;
 
-  powerup::powerup(ci::vec2 location, double speed) {
+  powerup::powerup(vec2 location, double speed) {
     loc_ = location;
     speed_ = speed;
     size_ = kPowerupSize;
     type_ = powerup_type(rand() % kPowerupNumTypes);
-    dir_ = ci::vec2(0, 1 / sqrt(2));
+    dir_ = vec2(0, 1 / sqrt(2));
   }
 
   void powerup::update() {
@@ -22,8 +23,8 @@ namespace BrickBreaker {
   }
 
   void powerup::draw() {
-    ci::gl::color(1, 0, 0);
-    cinder::Rectf rect = cinder::Rectf(loc_.x, loc_.y, loc_.x + size_, loc_.y + size_);
-    cinder::gl::drawSolidRect(rect);
+    gl::color(1, 0, 0);
+    Rectf rect = Rectf(loc_.x, loc_.y, loc_.x + size_, loc_.y + size_);
+    gl::drawSolidRect(rect);
   }
 }

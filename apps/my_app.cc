@@ -11,7 +11,10 @@
 
 // Brick sound from: https://freesound.org/people/kramsttop/sounds/170910/
 // Brick Texture from: https://www.alamy.com/a-close-up-of-a-red-bricked-wall-bricky-texture-brickwork-jointed-background-seams-of-a-brick-wall-blocks-of-bricks-in-fence-construction-zooming-image222082661.html
-// Ball texture from: https://i.stack.imgur.com/xz5iG.png
+// Background from: https://www.canva.com/design/play?template=EADajhczPNQ&type=TADCRcaBSd0
+// Platform sound from: https://www.fesliyanstudios.com/royalty-free-sound-effects-download/hammer-hitting-metal-57
+// Wall sound from: https://www.sounds-resource.com/pc_computer/terraria/sound/2890/
+
 
 namespace myapp {
   using namespace cinder;
@@ -36,14 +39,18 @@ namespace myapp {
   const int kCollisionPixelThreshold = 3;
   const int kMenuGridDim = 5;
   const int kDefaultBallHitHealthDecrease = 100;
-  const int kTenthOfSecondInMicroseconds = 100000;
+  const int kTwentiethOfSecondInMicroseconds = 50000;
   const int kBallPowerupCreationNum = 5;
+  // 15 seconds for platform powerup
+  const int kDefaultPlatformPowerupDuration = 15000000;
   DataSourceRef brick_sound;
+  DataSourceRef platform_sound;
+  DataSourceRef wall_sound;
   ImageSourceRef background;
   gl::Texture2dRef background_texture;
 
   void MyApp::setup() {
-    background = loadImage(app::loadAsset("background.jpg"));
+    background = loadImage(app::loadAsset("background.png"));
     background_texture = (gl::Texture::create(background));
   }
 
@@ -52,7 +59,7 @@ namespace myapp {
       const ivec2 size = {app::getWindowBounds().x2 / 2,
                           app::getWindowBounds().y2 / 2};
       bricks_.clear();
-      const Color color = Color(1, 0, 0);
+      const Color color = Color(1, 0, .3f);
       PrintText(std::string("Game over!"), color, size, getWindowCenter());
     } else {
       if (!level_clicked_) {
@@ -94,14 +101,16 @@ namespace myapp {
 
   MyApp::MyApp() {
     brick_sound = app::loadAsset("brick_tap.wav");
+    platform_sound = app::loadAsset("platform_tap.wav");
+    wall_sound = app::loadAsset("wall_tap.wav");
     po::SoundManager::get();
     menu_grid_width_ = app::getWindowBounds().x2 / kMenuGridDim;
     menu_grid_height_ = app::getWindowBounds().y2 / kMenuGridDim;
     is_start_ = true;
     level_clicked_ = false;
     time_ = 0;
-    last_collision_time_ = time_;
     clicks_ = 0;
+    platform_powerup_count_ = 0;
     levels_ = BrickBreaker::levels::GenerateLevels();
   }
 
@@ -170,6 +179,7 @@ namespace myapp {
     for (auto ball_iterator = balls_.begin(); ball_iterator != balls_.end();) {
       if (last_click_count_ < clicks_ && is_start_) {
         is_start_ = false;
+        play_platform_sound_ = false;
         ball_iterator->dir_ = vec2(
           ball_iterator->loc_.x - last_mouse_loc_.x,
           ball_iterator->loc_.y - last_mouse_loc_.y);
@@ -181,14 +191,24 @@ namespace myapp {
         ball_iterator->loc_ = vec2(platforms_[0].GetPlatformTopMiddle().x,
                                    platforms_[0].GetPlatformTopMiddle().y -
                                    ball_iterator->GetRadius());
-      } else if (ball_iterator->loc_.x <=
+      } else if ((ball_iterator->loc_.x <=
                  getWindowBounds().x1 + ball_iterator->GetRadius() ||
                  ball_iterator->loc_.x >=
-                 getWindowBounds().x2 - ball_iterator->GetRadius()) {
+                 getWindowBounds().x2 - ball_iterator->GetRadius()) &&
+                 time_ - ball_iterator->last_collision_time_ >
+                 kTwentiethOfSecondInMicroseconds) {
         ball_iterator->WallCollision();
+        po::SoundManager::get()->play(wall_sound);
+        ball_iterator->last_collision_time_ = time_;
       } else if (ball_iterator->loc_.y <=
                  getWindowBounds().y1 + ball_iterator->GetRadius()) {
-        ball_iterator->CeilingCollision();
+        if (time_ - ball_iterator->last_collision_time_ >
+            kTwentiethOfSecondInMicroseconds) {
+          ball_iterator->CeilingCollision();
+          ball_iterator->last_collision_time_ = time_;
+        }
+        po::SoundManager::get()->play(wall_sound);
+        ball_iterator->last_collision_time_ = time_;
       } else {
         for (BrickBreaker::platform platform : platforms_) {
           if (ball_iterator->loc_.x + ball_iterator->GetRadius() >
@@ -202,9 +222,14 @@ namespace myapp {
               platform.GetPlatformBounds().getY1() -
               ball_iterator->GetRadius()) {
             // Prevent ball getting stuck in constant platform collisions
-            if (time_ - last_collision_time_ > kTenthOfSecondInMicroseconds) {
+            if (time_ - ball_iterator->last_collision_time_ >
+                kTwentiethOfSecondInMicroseconds) {
               ball_iterator->PlatformCollision(mouse_vel_);
-              last_collision_time_ = time_;
+              ball_iterator->last_collision_time_ = time_;
+              if (play_platform_sound_) {
+                po::SoundManager::get()->play(platform_sound);
+              }
+              play_platform_sound_ = true;
             }
           }
         }
@@ -224,6 +249,12 @@ namespace myapp {
       for (auto platform_iterator = platforms_.begin();
            platform_iterator != platforms_.end(); ++platform_iterator) {
         powerup_iterator->update();
+        if (platform_powerup_count_ > 0 &&
+            time_ - kDefaultPlatformPowerupDuration > platform_powerup_time_) {
+          platform_iterator->ChangeWidth(
+            1 / kDefaultPlatformWidthIncreaseFactor);
+          platform_powerup_count_--;
+        }
         if (CheckPowerupCollection(*powerup_iterator, *platform_iterator)) {
           if (powerup_iterator->type_ == BrickBreaker::BALL) {
             for (int i = 0; i < kBallPowerupCreationNum; i++) {
@@ -234,7 +265,9 @@ namespace myapp {
             }
           } else if (powerup_iterator->type_ == BrickBreaker::PLATFORM) {
             for (auto &platform : platforms_) {
-              platform.IncreaseWidth(kDefaultPlatformWidthIncreaseFactor);
+              platform.ChangeWidth(kDefaultPlatformWidthIncreaseFactor);
+              platform_powerup_time_ = time_;
+              platform_powerup_count_++;
             }
           }
           powerup_iterator = powerups_.erase(powerup_iterator);

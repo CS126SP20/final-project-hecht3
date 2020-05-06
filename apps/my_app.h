@@ -47,13 +47,14 @@ class MyApp : public cinder::app::App {
   int last_click_count_;
   int menu_grid_width_;
   int menu_grid_height_;
+  int platform_powerup_count_;
   size_t current_level_;
 
   uint64_t time_;
-  uint64_t last_collision_time_;
+  uint64_t platform_powerup_time_;
 
   bool is_start_;
-
+  bool play_platform_sound_;
 };
 
 }  // namespace myapp
