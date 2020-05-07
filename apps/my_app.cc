@@ -49,7 +49,7 @@ namespace myapp {
    * Tenth of a second in microseconds. Is used to prevent balls from getting
    * stuck in constexprant collisions.
    */
-  constexpr int kTwentiethOfSecondInMicroseconds = 50000;
+  constexpr int kTenthOfSecondInMicroseconds = 100000;
   /** The amount of balls the ball powerup creates. */
   constexpr int kBallPowerupCreationNum = 5;
   /**
@@ -58,7 +58,7 @@ namespace myapp {
    */
   constexpr int kDefaultPlatformPowerupDuration = 10000000;
   /** The max level that has been created so far in levels.cpp */
-  constexpr int kMaxLevel = 3;
+  constexpr int kMaxLevel = 4;
   /** Pixel offset to exclude window header. */
   constexpr int kWindowHeightOffset = 5;
   /** The line width for the lines that make up the menu. */
@@ -219,7 +219,7 @@ namespace myapp {
                   ball_iterator->GetLocation().x + kCollisionPixelThreshold >=
                   getWindowBounds().x2 - ball_iterator->GetRadius()) &&
                  time_ - ball_iterator->last_brick_wall_collision_time_ >
-                 kTwentiethOfSecondInMicroseconds) {
+                 kTenthOfSecondInMicroseconds) {
         ball_iterator->WallCollision();
         po::SoundManager::get()->play(wall_sound);
         ball_iterator->last_brick_wall_collision_time_ = time_;
@@ -227,7 +227,7 @@ namespace myapp {
                  getWindowBounds().y1 + kWindowHeightOffset +
                  ball_iterator->GetRadius()) {
         if (time_ - ball_iterator->last_brick_wall_collision_time_ >
-            kTwentiethOfSecondInMicroseconds) {
+            kTenthOfSecondInMicroseconds) {
           ball_iterator->CeilingCollision();
           ball_iterator->last_brick_wall_collision_time_ = time_;
         }
@@ -247,7 +247,7 @@ namespace myapp {
               ball_iterator->GetRadius()) {
             // Prevent ball getting stuck in constant platform collisions
             if (time_ - ball_iterator->last_platform_collision_time_ >
-                kTwentiethOfSecondInMicroseconds) {
+                kTenthOfSecondInMicroseconds) {
               ball_iterator->PlatformCollision(platform_vel_);
               ball_iterator->last_platform_collision_time_ = time_;
               if (play_platform_sound_) {
@@ -396,8 +396,10 @@ namespace myapp {
     platforms_.clear();
     powerups_.clear();
     is_start_ = true;
-    for (const auto &i : levels_[level_number]) {
-      bricks_.push_back(i);
+    if (levels_.size() > level_number) {
+      for (const auto &i : levels_[level_number]) {
+        bricks_.push_back(i);
+      }
     }
     vec2 platform_init_loc = vec2(getWindowCenter().x,
                                   getWindowBounds().y2 - kWallOffset);

@@ -49,12 +49,12 @@ namespace BrickBreaker {
   }
 
   void brick::draw() {
-    if (full_health_ >= kMaxHealth * kOneThird) {
-      gl::color(.6f, .1f, 0);
-    } else if (full_health_ >= kMaxHealth * kTwoThirds) {
-      gl::color(.8f, .1f, 0);
-    } else {
+    if (full_health_ <= kMaxHealth * kOneThird) {
       gl::color(1, .1f, 0);
+    } else if (full_health_ <= kMaxHealth * kTwoThirds) {
+      gl::color(.6f, .1f, 0);
+    } else {
+      gl::color(.4f, .1f, 0);
     }
     gl::setMatricesWindow(app::getWindowSize());
     Rectf rect = Rectf(loc_.x, loc_.y, loc_.x + width_,
