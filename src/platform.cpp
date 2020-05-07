@@ -8,11 +8,9 @@
 namespace BrickBreaker {
   using namespace cinder;
 
-  platform::platform(vec2 location) {
+  platform::platform(vec2 location, int width) {
     loc_ = location;
-    speed_ = 0;
-    width_ = kDefaultPlatformWidth;
-    draw();
+    width_ = width;
   }
 
   void BrickBreaker::platform::update() {
@@ -21,24 +19,38 @@ namespace BrickBreaker {
 
   void platform::draw() {
     gl::color(0.5f, 0.5f, 0.5f);
-    Rectf rect = Rectf(loc_.x - (width_ / 2), loc_.y - (height_ / 2), loc_.x + (width_ / 2), loc_.y + (height_ / 2));
+    Rectf rect = Rectf(loc_.x - (width_ / 2), loc_.y - (height_ / 2),
+                       loc_.x + (width_ / 2), loc_.y + (height_ / 2));
     gl::drawSolidRoundedRect(rect, 5);
-  }
-
-  Rectf platform::GetPlatformBounds() {
-    return Rectf(loc_.x - (width_ / 2), loc_.y - (height_ / 2) + 1, loc_.x + (width_ / 2), loc_.y - (height_ / 2) - 1);
-  }
-
-  vec2 platform::GetPlatformTopMiddle() {
-    return vec2(loc_.x, loc_.y - kPlatformHeight / 2);
-  }
-
-  int platform::GetPlatformWidth() {
-    return width_;
   }
 
   void platform::ChangeWidth(double width_change_factor) {
     width_ = width_change_factor * width_;
+  }
+
+  Rectf platform::GetPlatformBounds() const {
+    return Rectf(loc_.x - (width_ / 2), loc_.y - (height_ / 2),
+                 loc_.x + (width_ / 2), loc_.y - (height_ / 2));
+  }
+
+  vec2 platform::GetPlatformTopMiddle() const {
+    return vec2(loc_.x, loc_.y - kPlatformHeight / 2);
+  }
+
+  int platform::GetPlatformWidth() const {
+    return width_;
+  }
+
+  ci::vec2 platform::GetLocation() const {
+    return loc_;
+  }
+
+  int platform::GetHeight() const {
+    return height_;
+  }
+
+  void platform::ChangeLocation(vec2 new_location) {
+    loc_ = new_location;
   }
 
 

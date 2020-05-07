@@ -23,8 +23,20 @@ namespace BrickBreaker {
   }
 
   void powerup::draw() {
-    gl::color(1, 0, 0);
+    if (type_ == BALL) {
+      gl::color(0, 0, 0);
+    } else if (type_ == PLATFORM) {
+      gl::color(0.5f, 0.5f, 0.5f);
+    }
     Rectf rect = Rectf(loc_.x, loc_.y, loc_.x + size_, loc_.y + size_);
     gl::drawSolidRect(rect);
+  }
+
+  powerup_type powerup::GetType() const {
+    return type_;
+  }
+
+  ci::vec2 powerup::GetLocation() const {
+    return loc_;
   }
 }

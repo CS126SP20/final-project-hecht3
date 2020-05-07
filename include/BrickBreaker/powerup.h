@@ -7,25 +7,54 @@
 
 #include <cinder/gl/gl.h>
 
-const double kDefaultPlatformWidthIncreaseFactor = 1.5;
+/**
+ * The factor to increase the platform width by when
+ * a platform powerup is collected.
+ * */
+constexpr double kDefaultPlatformWidthIncreaseFactor = 1.5;
 
 namespace BrickBreaker {
+  using namespace cinder;
 
-  const int kPowerupNumTypes = 2;
-  const int kPowerupSize = 20;
+  /** The number of possible powerup types. */
+  constexpr int kPowerupNumTypes = 2;
+  /** The pixel size of a powerup. */
+  constexpr int kPowerupSize = 20;
 
-  enum powerup_type {BALL, PLATFORM};
+  /** The possible types of powerups. Currently includes two. */
+  enum powerup_type {
+    BALL, PLATFORM
+  };
 
   class powerup {
   public:
-    powerup(cinder::vec2 location, double speed);
-    cinder::vec2 dir_;
-    size_t size_;
-    double speed_;
-    cinder::vec2 loc_;
-    powerup_type type_;
+   /**
+    * Constructor for a powerup.
+    *
+    * @param location the location of the powerup
+    * @param speed the speed the powerup falls at
+    */
+    powerup(vec2 location, double speed);
+
     void update();
+
     void draw();
+
+    powerup_type GetType() const;
+
+    vec2 GetLocation() const;
+
+  private:
+    /** The direction the powerup is moving in. Is always directly down. */
+    vec2 dir_;
+    /** The size of one side of the square powerup. */
+    size_t size_;
+    /** The speed the powerup falls at. */
+    double speed_;
+    /** The location of the center of the powerup */
+    vec2 loc_;
+    /** The type of the powerup assigned randomly on construction */
+    powerup_type type_;
   };
 }
 

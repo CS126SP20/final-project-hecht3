@@ -17,7 +17,9 @@ namespace BrickBreaker {
   gl::Texture2dRef two_thirds_health_brick_texture;
   gl::Texture2dRef one_third_health_brick_texture;
 
-  brick::brick(const vec2 &location, int health) {
+  brick::brick(const vec2 &location, int health, int height, int width) {
+    height_ = height;
+    width_ = width;
     loc_ = location;
     has_powerup_ = false;
     if (health < kMaxHealth) {
@@ -29,11 +31,14 @@ namespace BrickBreaker {
     if (rand() % kPowerupProbDenom > kPowerupProb) {
       has_powerup_ = true;
     }
-    img = loadImage(app::loadAsset("brick.jpg"));
+    img = loadImage(app::loadAsset(
+      "brick.jpg"));
     full_health_brick_texture = (gl::Texture::create(img));
-    img = loadImage(app::loadAsset("brick_two_thirds_health.png"));
+    img = loadImage(app::loadAsset(
+      "brick_two_thirds_health.png"));
     two_thirds_health_brick_texture = (gl::Texture::create(img));
-    img = loadImage(app::loadAsset("brick_one_third_health.png"));
+    img = loadImage(app::loadAsset(
+      "brick_one_third_health.png"));
     one_third_health_brick_texture = (gl::Texture::create(img));
   }
 
@@ -52,8 +57,8 @@ namespace BrickBreaker {
       gl::color(1, .1f, 0);
     }
     gl::setMatricesWindow(app::getWindowSize());
-    Rectf rect = Rectf(loc_.x, loc_.y, loc_.x + kBrickWidth,
-                       loc_.y + kBrickHeight);
+    Rectf rect = Rectf(loc_.x, loc_.y, loc_.x + width_,
+                       loc_.y + height_);
     if (health_ > full_health_ * kTwoThirds + 1) {
       full_health_brick_texture->bind();
       gl::draw(full_health_brick_texture, rect);
@@ -71,15 +76,27 @@ namespace BrickBreaker {
   }
 
   vec2 brick::GetUpperRightCorner() {
-    return vec2(loc_.x + kBrickWidth, loc_.y);
+    return vec2(loc_.x + width_, loc_.y);
   }
 
   vec2 brick::GetLowerLeftCorner() {
-    return vec2(loc_.x, loc_.y + kBrickHeight);
+    return vec2(loc_.x, loc_.y + height_);
   }
 
   vec2 brick::GetLowerRightCorner() {
-    return vec2(loc_.x + kBrickWidth, loc_.y + kBrickHeight);
+    return vec2(loc_.x + width_, loc_.y + height_);
+  }
+
+  int brick::GetHealth() const {
+    return health_;
+  }
+
+  bool brick::CheckContainsPowerup() const {
+    return has_powerup_;
+  }
+
+  void brick::DecreaseHealth(int health_decrease_amount) {
+    health_ -= health_decrease_amount;
   }
 }
 

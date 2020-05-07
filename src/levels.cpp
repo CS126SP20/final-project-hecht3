@@ -15,8 +15,8 @@ namespace BrickBreaker {
     for (int i = 0; i < 10; i++) {
       for (int j = 1; j < 10; j++) {
         ci::vec2 location = cinder::vec2(
-          i * (kBrickOffset + kBrickWidth) + kWallOffset,
-          j * (kBrickOffset + kBrickHeight) + kWallOffset);
+          i * (kBrickOffset + kDefaultBrickWidth) + kWallOffset,
+          j * (kBrickOffset + kDefaultBrickHeight) + kWallOffset);
         BrickBreaker::brick brick = BrickBreaker::brick(location,
                                                         kDefaultBrickHealth);
         bricks.push_back(brick);
@@ -29,8 +29,8 @@ namespace BrickBreaker {
     for (int i = 8; i < 10; i++) {
       for (int j = 8; j < 10; j++) {
         ci::vec2 location = cinder::vec2(
-          i * (kBrickOffset + kBrickWidth) + kWallOffset,
-          j * (kBrickOffset + kBrickHeight) + kWallOffset);
+          i * (kBrickOffset + kDefaultBrickWidth) + kWallOffset,
+          j * (kBrickOffset + kDefaultBrickHeight) + kWallOffset);
         BrickBreaker::brick brick = BrickBreaker::brick(location,
                                                         kDefaultBrickHealth);
         bricks.push_back(brick);
@@ -43,8 +43,8 @@ namespace BrickBreaker {
     for (int i = 5; i < 10; i++) {
       for (int j = 1; j < 10; j++) {
         ci::vec2 location = cinder::vec2(
-          i * (kBrickOffset + kBrickWidth) + kWallOffset,
-          j * (kBrickOffset + kBrickHeight) + kWallOffset);
+          i * (kBrickOffset + kDefaultBrickWidth) + kWallOffset,
+          j * (kBrickOffset + kDefaultBrickHeight) + kWallOffset);
         BrickBreaker::brick brick = BrickBreaker::brick(location,
                                                         kDefaultBrickHealth);
         bricks.push_back(brick);
@@ -57,8 +57,8 @@ namespace BrickBreaker {
     for (int i = 5; i < 10; i++) {
       for (int j = 1; j < 10; j++) {
         ci::vec2 location = cinder::vec2(
-          i * (kBrickOffset + kBrickWidth) + kWallOffset,
-          j * (kBrickOffset + kBrickHeight) + kWallOffset);
+          i * (kBrickOffset + kDefaultBrickWidth) + kWallOffset,
+          j * (kBrickOffset + kDefaultBrickHeight) + kWallOffset);
         BrickBreaker::brick brick = BrickBreaker::brick(location,
                                                         kDefaultBrickHealth);
         bricks.push_back(brick);

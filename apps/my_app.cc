@@ -36,42 +36,33 @@ namespace myapp {
   using app::KeyEvent;
 
   /** The default pixel offset from the wall for bricks being drawn. */
-  const int kWallOffset = 15;
+  constexpr int kWallOffset = 15;
   /**
    * The threshold for how close an object has to get before a collision occurs.
    */
-  const int kCollisionPixelThreshold = 3;
+  constexpr int kCollisionPixelThreshold = 3;
   /** The menu grid dimension. The menu is currently 5 by 5. */
-  const int kMenuGridDim = 5;
+  constexpr int kMenuGridDim = 5;
   /** The default amount of damage a ball does to a brick on collision. */
-  const int kDefaultBallHitHealthDecrease = 100;
+  constexpr int kDefaultBallHitHealthDecrease = 100;
   /**
    * Tenth of a second in microseconds. Is used to prevent balls from getting
-   * stuck in constant collisions.
+   * stuck in constexprant collisions.
    */
-  const int kTwentiethOfSecondInMicroseconds = 50000;
+  constexpr int kTwentiethOfSecondInMicroseconds = 50000;
   /** The amount of balls the ball powerup creates. */
-  const int kBallPowerupCreationNum = 5;
+  constexpr int kBallPowerupCreationNum = 5;
   /**
    * The default amount of time for the platform powerup to last in microseconds.
    * Is currently set to 10 seconds.
    */
-  const int kDefaultPlatformPowerupDuration = 10000000;
+  constexpr int kDefaultPlatformPowerupDuration = 10000000;
   /** The max level that has been created so far in levels.cpp */
-  const int kMaxLevel = 4;
+  constexpr int kMaxLevel = 3;
   /** Pixel offset to exclude window header. */
-  const int kWindowHeightOffset = 5;
-
-  /** The data source for the brick collision sound. */
-  DataSourceRef brick_sound;
-  /** The data source for the platform collision sound. */
-  DataSourceRef platform_sound;
-  /** The data source for the wall collision sound. */
-  DataSourceRef wall_sound;
-  /** The image source for the background. */
-  ImageSourceRef background;
-  /** The texture object for the background. */
-  gl::Texture2dRef background_texture;
+  constexpr int kWindowHeightOffset = 5;
+  /** The line width for the lines that make up the menu. */
+  constexpr int kMenuLineWidth = 10;
 
   void MyApp::setup() {
     background = loadImage(app::loadAsset("background.png"));
@@ -83,7 +74,7 @@ namespace myapp {
       const ivec2 size = {app::getWindowBounds().x2 / 2,
                           app::getWindowBounds().y2 / 2};
       bricks_.clear();
-      const Color color = Color(1, 0, .3f);
+      const Color color = Color(1, 0, .2f);
       PrintText(std::string("Game over!"), color, size, getWindowCenter());
     } else {
       if (!level_clicked_) {
@@ -152,23 +143,23 @@ namespace myapp {
            ball_iterator != balls_.end(); ++ball_iterator) {
         // Check collision with top of brick
         if (CheckTopBottomCollision(*ball_iterator, *brick_iterator)) {
-          brick_iterator->health_ -= kDefaultBallHitHealthDecrease;
+          brick_iterator->DecreaseHealth(kDefaultBallHitHealthDecrease);
           ball_iterator->BrickTopBottomCollision();
           po::SoundManager::get()->play(brick_sound);
         } else if (CheckSideCollision(*ball_iterator,
                                       *brick_iterator)) {
-          brick_iterator->health_ -= kDefaultBallHitHealthDecrease;
+          brick_iterator->DecreaseHealth(kDefaultBallHitHealthDecrease);
           ball_iterator->BrickSideCollision();
           po::SoundManager::get()->play(brick_sound);
         }
       }
-      if (brick_iterator->health_ <= 0) {
-        if (brick_iterator->has_powerup_) {
+      if (brick_iterator->GetHealth() <= 0) {
+        if (brick_iterator->CheckContainsPowerup()) {
           powerups_.emplace_back(vec2(
             (brick_iterator->GetLowerLeftCorner().x +
              brick_iterator->GetLowerRightCorner().x) / 2,
             (brick_iterator->GetLowerLeftCorner().y +
-             brick_iterator->GetLowerRightCorner().y) / 2), balls_[0].speed_);
+             brick_iterator->GetLowerRightCorner().y) / 2), balls_[0].GetSpeed());
         }
         brick_iterator = bricks_.erase(brick_iterator);
       } else {
@@ -181,7 +172,7 @@ namespace myapp {
     double time_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
       std::chrono::high_resolution_clock::
       now().time_since_epoch()).count() - time_;
-    last_platform_loc_ = platforms_[0].loc_;
+    last_platform_loc_ = platforms_[0].GetLocation();
     for (auto platform_iterator = platforms_.begin();
          platform_iterator != platforms_.end(); ++platform_iterator) {
       if (last_mouse_loc_.x >
@@ -194,12 +185,12 @@ namespace myapp {
         last_mouse_loc_.x =
           getWindowBounds().x1 + platform_iterator->GetPlatformWidth() / 2;
       }
-      platform_iterator->loc_ = vec2(last_mouse_loc_.x,
-                                     platform_iterator->loc_.y);
+      platform_iterator->ChangeLocation(vec2(last_mouse_loc_.x,
+                                             platform_iterator->GetLocation().y));
       platform_iterator->update();
     }
     float change_in_platform_loc_x_ =
-      last_platform_loc_.x - platforms_[0].loc_.x;
+      last_platform_loc_.x - platforms_[0].GetLocation().x;
     platform_vel_ = change_in_platform_loc_x_ / time_elapsed;
     time_ = std::chrono::duration_cast<std::chrono::microseconds>(
       std::chrono::high_resolution_clock::
@@ -211,53 +202,54 @@ namespace myapp {
       if (last_click_count_ < clicks_ && is_start_) {
         is_start_ = false;
         play_platform_sound_ = false;
-        ball_iterator->dir_ = vec2(
-          ball_iterator->loc_.x - last_mouse_loc_.x,
-          ball_iterator->loc_.y - last_mouse_loc_.y);
+        ball_iterator->SetDirection(vec2(
+          ball_iterator->GetLocation().x - last_mouse_loc_.x,
+          ball_iterator->GetLocation().y - last_mouse_loc_.y));
         last_click_count_ = clicks_;
       }
       // We can get platforms[0] here because at the start, platforms are always
       // initialized before balls
       if (is_start_) {
-        ball_iterator->loc_ = vec2(platforms_[0].GetPlatformTopMiddle().x,
+        ball_iterator->SetLocation(vec2(platforms_[0].GetPlatformTopMiddle().x,
                                    platforms_[0].GetPlatformTopMiddle().y -
-                                   ball_iterator->GetRadius());
-      } else if ((ball_iterator->loc_.x <=
-                  getWindowBounds().x1 + ball_iterator->GetRadius() + kCollisionPixelThreshold ||
-                  ball_iterator->loc_.x  + kCollisionPixelThreshold >=
+                                   ball_iterator->GetRadius()));
+      } else if ((ball_iterator->GetLocation().x <=
+                  getWindowBounds().x1 + ball_iterator->GetRadius() +
+                  kCollisionPixelThreshold ||
+                  ball_iterator->GetLocation().x + kCollisionPixelThreshold >=
                   getWindowBounds().x2 - ball_iterator->GetRadius()) &&
-                 time_ - ball_iterator->last_collision_time_ >
+                 time_ - ball_iterator->last_brick_wall_collision_time_ >
                  kTwentiethOfSecondInMicroseconds) {
         ball_iterator->WallCollision();
         po::SoundManager::get()->play(wall_sound);
-        ball_iterator->last_collision_time_ = time_;
-      } else if (ball_iterator->loc_.y <=
+        ball_iterator->last_brick_wall_collision_time_ = time_;
+      } else if (ball_iterator->GetLocation().y <=
                  getWindowBounds().y1 + kWindowHeightOffset +
                  ball_iterator->GetRadius()) {
-        if (time_ - ball_iterator->last_collision_time_ >
+        if (time_ - ball_iterator->last_brick_wall_collision_time_ >
             kTwentiethOfSecondInMicroseconds) {
           ball_iterator->CeilingCollision();
-          ball_iterator->last_collision_time_ = time_;
+          ball_iterator->last_brick_wall_collision_time_ = time_;
         }
         po::SoundManager::get()->play(wall_sound);
-        ball_iterator->last_collision_time_ = time_;
+        ball_iterator->last_brick_wall_collision_time_ = time_;
       } else {
         for (BrickBreaker::platform platform : platforms_) {
-          if (ball_iterator->loc_.x + ball_iterator->GetRadius() >
+          if (ball_iterator->GetLocation().x + ball_iterator->GetRadius() >
               platform.GetPlatformBounds().getX1() &&
-              ball_iterator->loc_.x - ball_iterator->GetRadius() <
+              ball_iterator->GetLocation().x - ball_iterator->GetRadius() <
               platform.GetPlatformBounds().getX2() &&
-              ball_iterator->loc_.y + kCollisionPixelThreshold >=
+              ball_iterator->GetLocation().y + kCollisionPixelThreshold >=
               platform.GetPlatformBounds().getY1() -
               ball_iterator->GetRadius() &&
-              ball_iterator->loc_.y - kCollisionPixelThreshold <=
+              ball_iterator->GetLocation().y - kCollisionPixelThreshold <=
               platform.GetPlatformBounds().getY1() -
               ball_iterator->GetRadius()) {
             // Prevent ball getting stuck in constant platform collisions
-            if (time_ - ball_iterator->last_collision_time_ >
+            if (time_ - ball_iterator->last_platform_collision_time_ >
                 kTwentiethOfSecondInMicroseconds) {
               ball_iterator->PlatformCollision(platform_vel_);
-              ball_iterator->last_collision_time_ = time_;
+              ball_iterator->last_platform_collision_time_ = time_;
               if (play_platform_sound_) {
                 po::SoundManager::get()->play(platform_sound);
               }
@@ -267,7 +259,7 @@ namespace myapp {
         }
       }
       ball_iterator->update();
-      if (ball_iterator->loc_.y > getWindowBounds().y2) {
+      if (ball_iterator->GetLocation().y > getWindowBounds().y2) {
         ball_iterator = balls_.erase(ball_iterator);
       } else {
         ++ball_iterator;
@@ -288,14 +280,14 @@ namespace myapp {
           platform_powerup_count_--;
         }
         if (CheckPowerupCollection(*powerup_iterator, *platform_iterator)) {
-          if (powerup_iterator->type_ == BrickBreaker::BALL) {
+          if (powerup_iterator->GetType() == BrickBreaker::BALL) {
             for (int i = 0; i < kBallPowerupCreationNum; i++) {
               BrickBreaker::ball ball_to_add = BrickBreaker::ball(
-                balls_[0].loc_, balls_[0].speed_,
+                balls_[0].GetLocation(), balls_[0].GetSpeed(),
                 vec2(rand() - rand(), rand() - rand()));
               balls_.push_back(ball_to_add);
             }
-          } else if (powerup_iterator->type_ == BrickBreaker::PLATFORM) {
+          } else if (powerup_iterator->GetType() == BrickBreaker::PLATFORM) {
             for (auto &platform : platforms_) {
               platform.ChangeWidth(kDefaultPlatformWidthIncreaseFactor);
               platform_powerup_time_ = time_;
@@ -355,21 +347,23 @@ namespace myapp {
   bool MyApp::CheckPowerupCollection(BrickBreaker::powerup &powerup,
                                      BrickBreaker::platform &platform) {
     bool within_sides =
-      powerup.loc_.x + BrickBreaker::kPowerupSize + kCollisionPixelThreshold >=
+      powerup.GetLocation().x + BrickBreaker::kPowerupSize +
+      kCollisionPixelThreshold >=
       platform.GetPlatformBounds().x1 &&
-      powerup.loc_.x - BrickBreaker::kPowerupSize <=
+      powerup.GetLocation().x - BrickBreaker::kPowerupSize <=
       platform.GetPlatformBounds().x2 + kCollisionPixelThreshold;
     bool within_vertical =
-      powerup.loc_.y + BrickBreaker::kPowerupSize + kCollisionPixelThreshold >=
+      powerup.GetLocation().y + BrickBreaker::kPowerupSize +
+      kCollisionPixelThreshold >=
       platform.GetPlatformBounds().y1 &&
-      powerup.loc_.y - BrickBreaker::kPowerupSize <=
+      powerup.GetLocation().y - BrickBreaker::kPowerupSize <=
       platform.GetPlatformBounds().y2 + kCollisionPixelThreshold;
     return within_sides && within_vertical;
   }
 
   void MyApp::DrawMenuScreen() {
     gl::color(0, 0, 1);
-    gl::lineWidth(10);
+    gl::lineWidth(kMenuLineWidth);
     for (int i = 0; i <= kMenuGridDim; i++) {
       for (int j = 0; j <= kMenuGridDim; j++) {
         const vec2 center = vec2(
@@ -410,7 +404,8 @@ namespace myapp {
     BrickBreaker::platform platform = BrickBreaker::platform(platform_init_loc);
     platforms_.push_back(platform);
     BrickBreaker::ball ball = BrickBreaker::ball(
-      vec2(platform.loc_.x, platform.loc_.y - platform.height_),
+      vec2(platform.GetLocation().x,
+           platform.GetLocation().y - platform.GetHeight()),
       kDefaultBallSpeed, vec2(10, -10));
     balls_.push_back(ball);
   }
@@ -423,7 +418,7 @@ namespace myapp {
             loc_clicked.y > j * menu_grid_height_ &&
             loc_clicked.y < (j + 1) * menu_grid_height_) {
           // True level number is the below number + 1 because of 0 indexing
-          if (current_level_ <= max_level_) {
+          if (i + j * menu_grid_width_ <= max_level_) {
             current_level_ = i + j * menu_grid_width_;
             return current_level_;
           }

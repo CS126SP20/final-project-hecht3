@@ -71,15 +71,27 @@ namespace BrickBreaker {
     }
   }
 
-  vec2 ball::GetLocation() {
+  vec2 ball::GetLocation() const {
     return loc_;
   }
 
-  vec2 ball::GetDirection() {
+  vec2 ball::GetDirection() const {
     return dir_;
   }
 
-  double ball::GetRadius() {
+  double ball::GetRadius() const {
     return radius_;
+  }
+
+  double ball::GetSpeed() const {
+    return speed_;
+  }
+
+  void ball::SetLocation(vec2 new_location) {
+    loc_ = new_location;
+  }
+
+  void ball::SetDirection(vec2 new_direction) {
+    dir_ = new_direction;
   }
 }
